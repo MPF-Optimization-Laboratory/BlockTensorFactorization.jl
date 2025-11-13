@@ -251,7 +251,11 @@ function cubic_spline_coefficients(y::AbstractVector{<:Real}; h=1)
     return a, b[1:end-1], c, d
 end
 
-"""creates the tridiagonal matrix to solve for coefficients b"""
+"""
+    spline_mat(n)
+
+Creates the `Tridiagonal` matrix to solve for coefficients b.
+"""
 function spline_mat(n)
     du = [0; ones(Int, n-1)]
     dd = [6; 4*ones(Int, n-1) ; 1]
@@ -260,9 +264,14 @@ function spline_mat(n)
     return Tridiagonal(dl, dd, du)
 end
 
-"""Returns a function f(x) that is an interpolating/extrapolating spline for y, with uniform stepsize h between the x-values of the knots"""
+"""
+    make_spline(y::AbstractVector{<:Real}; h=1)
+
+Returns a function f(x) that is an interpolating/extrapolating spline for y, with
+uniform stepsize h between the x-values of the knots.
+"""
 function make_spline(y::AbstractVector{<:Real}; h=1)
-    a, b, c, d = cubic_spline_coefficients(y::AbstractVector{<:Real}; h=1)
+    a, b, c, d = cubic_spline_coefficients(y::AbstractVector{<:Real}; h)
     n = length(y)
 
     function f(x)
