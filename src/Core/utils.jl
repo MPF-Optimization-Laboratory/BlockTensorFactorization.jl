@@ -205,7 +205,7 @@ end
     proj_one_hot(x)
 
 Projects an array x to the closest one hot array: an array with all 0's except for a
-single 1. Does not mutate; see `proj_one_hot!` for a mutating version.
+single 1. Does not mutate; see [`proj_one_hot!`](@ref) for a mutating version.
 
 This is not a unique projection if there are multiple largest entries. In this case, will
 pick one of the largest entries to be 1 and set the rest to zero.
@@ -217,6 +217,11 @@ function proj_one_hot(x)
     return onehot
 end
 
+"""
+    proj_one_hot!(x)
+
+Mutating version of [`proj_one_hot`](@ref).
+"""
 function proj_one_hot!(x)
     i = argmax(x)
     x .= 0
