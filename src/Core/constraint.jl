@@ -279,6 +279,11 @@ ProjectedNormalization(linftynorm, linftyproject!;
 linftynormalize_inftyslices! = ProjectedNormalization(linftynorm, linftyproject!; whats_normalized=(x -> eachslice(x; dims=1)))
 """
 ProjectedNormalization(linftynorm, linftyproject!;
+    whats_normalized=(x -> eachslice(x; dims=1))))
+"""
+linftynormalize_1slices! = ProjectedNormalization(linftynorm, linftyproject!; whats_normalized=(x -> eachslice(x; dims=1)))
+"""
+ProjectedNormalization(linftynorm, linftyproject!;
     whats_normalized=(x -> eachslice(x; dims=(1,2))))
 """
 linftynormalize_12slices! = ProjectedNormalization(linftynorm, linftyproject!; whats_normalized=(x -> eachslice(x; dims=(1,2))))
