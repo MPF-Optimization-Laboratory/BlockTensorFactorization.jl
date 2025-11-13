@@ -3,7 +3,7 @@ Utility functions used throughout the package that don't fit anywhere else
 """
 
 """
-    SuperDiagonal{T, N} <: AbstractArray{T,N}
+    SuperDiagonal{T, N, V<:AbstractVector{T}} <: AbstractArray{T, N}
 
 Array of order N that is zero everywhere except possibly along the super diagonal.
 """
@@ -17,8 +17,12 @@ struct SuperDiagonal{T, N, V<:AbstractVector{T}} <: AbstractArray{T,N}
 end
 
 # SuperDiagonal Interface
+"""
+    SuperDiagonal(v::AbstractVector, ndims::Integer=2)
+
+Constructs a `SuperDiagonal` array from the vector `v`.
+"""
 SuperDiagonal(v::AbstractVector, ndims::Integer=2) = SuperDiagonal{eltype(v), ndims, typeof(v)}(v)
-SuperDiagonal{T}(v::AbstractVector, ndims::Integer=2) where {T} = SuperDiagonal(convert(AbstractVector{T}, v)::AbstractVector{T}, ndims)
 
 LinearAlgebra.diag(S::SuperDiagonal) = S.diag
 function array(S::SuperDiagonal)
@@ -67,6 +71,9 @@ identity_tensor(T, I, ndims) = SuperDiagonal(ones(T, I), ndims)
 #######################################################
 
 const DiagonalTuple{N, T} = NTuple{N, Diagonal{T}} # Tuple type where you have a tuple of Diagonal matrices, possibly of varying sizes
+
+"""Alias for NTuple{N, Diagonal{T}}"""
+DiagonalTuple
 
 # TODO: Use meta programming to define these DiagonalTuple methods
 
