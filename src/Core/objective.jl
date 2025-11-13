@@ -28,3 +28,5 @@ struct L2 <: AbstractObjective end
 Calculates the least squares objective at tensors `X` and `Y`.
 """
 (objective::L2)(X, Y) = norm2(X - Y)
+
+# TODO Should this be 0.5norm2(X - Y) instead?
