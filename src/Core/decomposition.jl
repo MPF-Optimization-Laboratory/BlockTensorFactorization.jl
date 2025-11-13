@@ -166,16 +166,16 @@ factors(G::GenericDecomposition) = G.factors
 contractions(G::GenericDecomposition) = G.contractions
 frozen(G::GenericDecomposition) = G.frozen
 
-"""
-SingletonDecomposition(A::AbstractArray, frozen=false)
-
-Wraps an AbstractArray so it can be treated like an AbstractDecomposotition
-"""
 struct SingletonDecomposition{T, N} <: AbstractDecomposition{T, N}
     factors::Tuple{AbstractArray{T}}
     frozen::Tuple{Bool}
 end
 
+"""
+SingletonDecomposition(A::AbstractArray, frozen=false)
+
+Wraps an AbstractArray so it can be treated like an AbstractDecomposition
+"""
 SingletonDecomposition(A::AbstractArray, frozen=false) = SingletonDecomposition{eltype(A),ndims(A)}((A,), (frozen,))
 contractions(_::SingletonDecomposition) = ()
 array(S::SingletonDecomposition) = factors(S)[begin]
