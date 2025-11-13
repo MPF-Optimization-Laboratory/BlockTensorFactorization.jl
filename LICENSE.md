@@ -2,6 +2,8 @@ Copyright (c) 2023-2025: Nicholas Richardson, Noah Marusenko, and Michael P. Fri
 
 BlockTensorFactorization.jl is licensed under the [MPL version 2.0](https://www.mozilla.org/MPL/2.0/).
 
+## License
+
 Mozilla Public License Version 2.0
 ==================================
 
