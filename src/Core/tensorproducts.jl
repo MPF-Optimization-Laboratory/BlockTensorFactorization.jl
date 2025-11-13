@@ -8,7 +8,7 @@ since these are defined generally for arbitrarily ordered tensors/arrays.
 
 Contracts the `n`th mode of `A`` with the first mode of `B`. Equivalent to `A` ×ₙ `B` where
 
-(A ×ₙ B)[i₁, …, iₙ₋₁, j, iₙ₊₁, …, i_N] = ∑_iₙ A[i₁, …, i_N] B[iₙ, j].
+(A ×ₙ B)[i₁, …, i_N] = ∑ⱼ A[i₁, …, iₙ₋₁, j, iₙ₊₁, …, i_N] B[iₙ, j].
 """
 function nmode_product(A::AbstractArray, B::AbstractMatrix, n::Integer)
     Aperm = swapdims(A, n)
@@ -30,7 +30,7 @@ Contracts the `n`th mode of `A` with `b`. Equivalent to `A` ×ₙ `b` where
 function nmode_product(A::AbstractArray, b::AbstractVector, n::Integer)
     Aperm = swapdims(A, n)
     Cperm = Aperm ×₁ b # convert the problem to the mode-1 product
-    return Cperm # no need to swap since the first dimention is dropped
+    return Cperm # no need to swap since the first dimension is dropped
 end
 
 """
@@ -45,7 +45,7 @@ nmp = nmode_product # Short-hand alias
 """
 Matrix times Tensor
 
-Looks like C[i1, i2, ..., iN] = sum_r A[i1, r] * B[r, i2, ..., iN] entry-wise.
+Looks like C[i1, i2, ..., iN] = ∑_r A[i1, r] * B[r, i2, ..., iN] entry-wise.
 """
 function mtt(A::AbstractMatrix, B::AbstractArray)
     sizeB = size(B)

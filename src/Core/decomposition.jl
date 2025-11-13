@@ -68,13 +68,34 @@ array(D::AbstractDecomposition) = Array(D)::AbstractArray
 
 """
     factors(D::AbstractDecomposition)
-    factor(D::AbstractDecomposition, n::Integer)
 
-A tuple of (usually smaller) arrays representing the decomposition of a (usually larger)
-array. Use `factor(D, n)` to get just the `n`'th factor.
+A tuple of arrays representing the decomposition of `D`.
+
+Use [`factor`](@ref) to get just the `n`th factor.
 """
 factors(D::AbstractDecomposition) = D.factors
+
+"""
+    factor(D::AbstractDecomposition, n::Integer)
+
+The `n`th factor of `D`.
+
+Use [`factors`](@ref) to get all the factors.
+"""
 factor(D::AbstractDecomposition, n::Integer) = factors(D)[n]
+
+"""
+    eachfactorindex(D::AbstractDecomposition)
+
+An iterable to index the factors of `D`; not necessarily 1:ndims(D).
+Does not include non-data factors like the core of a `CPDecomposition`.
+
+For example,
+`eachfactorindex(D::Tucker) == 0:ndims(D)` since `core(D)` is the zeroth factor.
+`eachfactorindex(D::CPDecomposition) == 1:ndims(D)`. `core(D)` exists, but
+it is frozen as the identity tensor.
+And `eachfactorindex(D::Tucker1) == 0:1` representing the core and matrix factor of `D`.
+"""
 eachfactorindex(D::AbstractDecomposition) = 1:nfactors(D)
 
 """
@@ -95,29 +116,38 @@ contractions(D::AbstractDecomposition) = D.contractions
 """
     frozen(D::AbstractDecomposition)
 
-A tuple of `Bools` the same length as `factors(D)` showing which factors are "frozen" in the
+A tuple of `Bool`s the same length as `factors(D)` showing which factors are "frozen" in the
 sense that a block decent algorithm should skip these factors when decomposing a tensor.
+
+See [`isfrozen`](@ref).
 """
 frozen(D::AbstractDecomposition) = D.frozen
 
-isfrozen(D::AbstractDecomposition) = any(frozen(D))
+"""
+    isfrozen(D::AbstractDecomposition, n::Integer)
+
+`True` if the `n`th factor of `D` is frozen. See [`frozen`](@ref).
+"""
 isfrozen(D::AbstractDecomposition, n::Integer) = frozen(D)[n]
 
 """
     rankof(D::AbstractDecomposition)
 
-Internal dimention sizes for a decomposition. Returns the sizes of all factors if not defined
+Internal dimension sizes for a decomposition. Returns the sizes of all factors if not defined
 for a concrete subtype of `AbstractDecomposition`.
 
 Examples
 --------
-`CPDecomposition`: size of second dimention for the factors
+`CPDecomposition`: size of second dimension for the factors
 `Tucker`: size of the core factor
-`Tucker1`: size of the first dimention of the core factor
+`Tucker1`: size of the first dimension of the core factor
 """
 rankof(D::AbstractDecomposition) = size.(factors(D))
 
-DEFAULT_INIT = randn
+const DEFAULT_INIT = randn
+
+"""Default initialization function to use when creating a random decomposition."""
+DEFAULT_INIT
 
 """
 Most general decomposition. Takes the form of interweaving contractions between the factors.
@@ -153,6 +183,10 @@ array(S::SingletonDecomposition) = factors(S)[begin]
 #Base.show(io::IO, D::AbstractDecomposition) = show.((io,), factors(D))
 
 # Tucker decompositions
+"""
+Abstract type for all Tucker-like decompositions. `AbstractTucker` decompositions have a
+core with the same number of dimensions as the full array, and (a) matrix factor(s).
+"""
 abstract type AbstractTucker{T, N} <: AbstractDecomposition{T, N} end
 
 function Base.show(io::IO, X::AbstractTucker)
@@ -168,14 +202,6 @@ function Base.show(io::IO, mime::MIME"text/plain", X::AbstractTucker)
     end
 end
 
-"""
-Tucker decomposition. Takes the form of a core times a matrix for each dimention.
-
-For example, a rank (r, s, t) Tucker decomposition of an order three tensor D would be, entry-wise,
-D[i, j, k] = sum_r sum_s sum_t G[r, s, t] * A[i, r] * B[j, s] * C[k, t]).
-
-CPDecomposition((A, B, C))
-"""
 struct Tucker{T, N} <: AbstractTucker{T, N}
 	factors::Tuple{AbstractArray{T}, Vararg{AbstractMatrix{T}}} # ex. (G, A, B, C)
     frozen::NTuple{M, Bool} where M
@@ -195,18 +221,18 @@ struct Tucker{T, N} <: AbstractTucker{T, N}
 end
 
 function _valid_tucker(factors)
-    # Need one factor for each core dimention
+    # Need one factor for each core dimension
     core, other_factors... = factors
     if ndims(core) != length(other_factors)
         @warn "Core is order $(ndims(factors[1])) but got $(length(factors)-1) other factor(s)"
         return false
     end
 
-    # Need the core sizes to match the second dimention of each other factor
+    # Need the core sizes to match the second dimension of each other factor
     core_size = size(core)
     other_sizes = map(x -> size(x, 2), other_factors)
     if any(core_size .!= other_sizes)
-        @warn "Size of core $(size(core)) is not compatible with the other factor's dimentions $other_sizes"
+        @warn "Size of core $(size(core)) is not compatible with the other factor's dimensions $other_sizes"
         return false
     end
 
@@ -224,7 +250,7 @@ struct Tucker1{T, N} <: AbstractTucker{T, N}
         core_dim1 = size(core, 1)
         matrix_dim2 = size(factors[end], 2)
         if core_dim1 != matrix_dim2
-            @warn "First core dimention $core_dim1 does not match second matrix dimention $matrix_dim2"
+            @warn "First core dimension $core_dim1 does not match second matrix dimension $matrix_dim2"
             throw(ArgumentError("Not a valid Tucker1 decomposition"))
         end
 
@@ -235,16 +261,48 @@ struct Tucker1{T, N} <: AbstractTucker{T, N}
     end
 end
 
-# TODO add automatic struct convertion for Tucker-n beyond Tucker-1 when the number of other
-# factors is less than the number of dimentions of the core
+# TODO add automatic struct conversion for Tucker-n beyond Tucker-1 when the number of other
+# factors is less than the number of dimensions of the core
 
 # Constructors
-Tucker(factors::Tuple{Vararg{AbstractArray{T}}}, frozen=false_tuple(length(factors))) where T = Tucker{T, length(factors) - 1}(factors, frozen)
+"""
+    Tucker((G, A, B, ...))
+    Tucker((G, A, B, ...), frozen)
+
+Tucker decomposition. Takes the form of a core `G` times a matrix for each dimension.
+
+For example, a rank (r, s, t) Tucker decomposition of an order three tensor D would be, entry-wise,
+D[i, j, k] = ∑_r ∑_s ∑_t G[r, s, t] * A[i, r] * B[j, s] * C[k, t].
+
+Optionally use `frozen::Tuple{Bool}` to specify which factors are [`frozen`](@ref).
+
+See [`tuckerproduct`](@ref).
+"""
+function Tucker(factors::Tuple{Vararg{AbstractArray{T}}}, frozen=false_tuple(length(factors))) where T
+    return Tucker{T, length(factors) - 1}(factors, frozen)
+end
 #Tucker(factors::Tuple{<:AbstractArray{T}, <:AbstractMatrix{T}}, frozen=false_tuple(2)) where T = Tucker1(factors, frozen) # use the more specific struct
-Tucker1(factors::Tuple{<:AbstractArray{T}, <:AbstractMatrix{T}}, frozen=false_tuple(2)) where T = Tucker1{T, ndims(factors[1])}(factors, frozen)
+"""
+    Tucker1((G, A))
+    Tucker1((G, A), frozen)
+
+Tucker-1 decomposition. Takes the form of a core `G` times a matrix `A`. Entry-wise
+
+D[i₁, …, i_N] = ∑_r G[r, i₂, …, i_N] * A[i₁, r].
+
+Optionally use `frozen::Tuple{Bool}` to specify which factors are [`frozen`](@ref).
+
+See [`×₁`](@ref) and [`mtt`](@ref).
+"""
+function Tucker1(factors::Tuple{<:AbstractArray{T}, <:AbstractMatrix{T}}, frozen=false_tuple(2)) where T
+    return Tucker1{T, ndims(factors[1])}(factors, frozen)
+end
+
+# TODO use some meta programming to create TuckerN types
 
 """
-    Tucker(full_size::NTuple{N, Integer}, ranks::NTuple{N, Integer}; frozen=false_tuple(length(ranks)+1), init=DEFAULT_INIT, kwargs...) where N
+    Tucker(full_size::NTuple{N, Integer}, ranks::NTuple{N, Integer};
+        frozen=false_tuple(length(ranks)+1), init=DEFAULT_INIT, kwargs...) where N
 
 Constructs a random Tucker type using `init` to initialize the factors.
 
@@ -257,7 +315,6 @@ function Tucker(full_size::NTuple{N, Integer}, ranks::NTuple{N, Integer}; frozen
 end
 
 # TODO throw a readable error if the length of `ranks` does not match the number of dimensions of full_size
-
 
 """
     Tucker1(full_size::NTuple{N, Integer}, rank::Integer; frozen=false_tuple(2), init=DEFAULT_INIT, kwargs...) where N
@@ -273,8 +330,25 @@ end
 
 
 # AbstractTucker interface
+"""
+    core(T::AbstractTucker)
+
+The core of a Tucker-like decomposition. Same number of dimensions as the full array.
+"""
 core(T::AbstractTucker) = factors(T)[begin]
+
+"""
+    matrix_factors(T::AbstractTucker)
+
+Tuple of the non-core factors of `T`. See [`matrix_factor`](@ref).
+"""
 matrix_factors(T::AbstractTucker) = factors(T)[begin+1:end]
+
+"""
+    matrix_factor(T::AbstractTucker, n::Integer)
+
+The `n`th matrix factor. See [`matrix_factors`](@ref).
+"""
 matrix_factor(T::AbstractTucker, n::Integer) = matrix_factors(T)[n]
 isfrozen(T::AbstractTucker, n::Integer) = frozen(T)[n+1]
 # This way, the 1st matrix factor in a CPDecomposition is factors(T)[1]
@@ -304,7 +378,7 @@ rankof(T::Tucker) = map(x -> size(x, 2), matrix_factors(T))
 rankof(T::Tucker1) = size(core(T), 1)
 
 # Essentialy zero index tucker factors so the core is the 0th factor, and the nth factor
-# is the matrix factor in the nth dimention
+# is the matrix factor in the nth dimension
 function factor(D::AbstractTucker, n::Integer)
     if n == 0
         return core(D)
@@ -347,7 +421,7 @@ struct CPDecomposition{T, N} <: AbstractTucker{T, N}
     function CPDecomposition{T, N}(factors, frozen) where {T, N}
         ranks = map(x -> size(x, 2), factors)
         allequal(ranks) ||
-            throw(ArgumentError("Second dimention of factors should be equal. Got $ranks"))
+            throw(ArgumentError("Second dimension of factors should be equal. Got $ranks"))
 
         length(frozen) == length(factors) ||
             throw(ArgumentError("Tuple of frozen factors length $(length(frozen)) does not match number of factors $(length(factors))"))

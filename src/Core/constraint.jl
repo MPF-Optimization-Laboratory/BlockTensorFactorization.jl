@@ -358,7 +358,7 @@ linftyscale_12slices! = ScaledNormalization(linftynorm; whats_normalized=(x -> e
     scale=(A -> size(A, 2)))"""
 l1scale_average12slices! = ScaledNormalization(l1norm;
     whats_normalized=(x -> eachslice(x; dims=1)),
-    scale=(A -> size(A, 2))) # the length of the second dimention "J"
+    scale=(A -> size(A, 2))) # the length of the second dimension "J"
 """ScaledNormalization(l2norm;
     whats_normalized=(x -> eachslice(x; dims=1)),
     scale=(A -> size(A, 2)))"""

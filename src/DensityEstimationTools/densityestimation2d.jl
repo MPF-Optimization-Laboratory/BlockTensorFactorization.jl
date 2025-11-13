@@ -18,7 +18,7 @@ function _in2drange(vs, P)
     return x -> ((a ≤ x[1] ≤ b) && (c ≤ x[2] ≤ d))
 end
 
-# TODO extend this to arbitrary number of dimentions
+# TODO extend this to arbitrary number of dimensions
 
 """
 make_densities2d(s::Sink; kwargs...)
