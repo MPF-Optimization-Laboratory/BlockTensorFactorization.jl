@@ -1,13 +1,14 @@
 """
 Different tensor products. Note these do not use Einsum/Tullio or any entrywise notation
-since these are defined generaly for arbitrarily ordered tensors/arrays.
+since these are defined generally for arbitrarily ordered tensors/arrays.
 """
 
 """
     nmode_product(A::AbstractArray, B::AbstractMatrix, n::Integer)
 
-This is defined for arbitrary n, which cannot be done using Einsum/Tullio since they can
-only handle fixed ordered-tensors.
+Contracts the `n`th mode of `A`` with the first mode of `B`. Equivalent to `A` ×ₙ `B` where
+
+(A ×ₙ B)[i₁, …, iₙ₋₁, j, iₙ₊₁, …, i_N] = ∑_iₙ A[i₁, …, i_N] B[iₙ, j].
 """
 function nmode_product(A::AbstractArray, B::AbstractMatrix, n::Integer)
     Aperm = swapdims(A, n)
@@ -19,13 +20,23 @@ function nmode_product(A::AbstractArray, B::AbstractMatrix, n::Integer)
     #return imat(Cmat, n, sizeC)
 end
 
+"""
+    nmode_product(A::AbstractArray, b::AbstractVector, n::Integer)
+
+Contracts the `n`th mode of `A` with `b`. Equivalent to `A` ×ₙ `b` where
+
+(A ×ₙ b)[i₁, …, iₙ₋₁, iₙ₊₁, …, i_N] = ∑_iₙ A[i₁, …, i_N] b[iₙ].
+"""
 function nmode_product(A::AbstractArray, b::AbstractVector, n::Integer)
     Aperm = swapdims(A, n)
     Cperm = Aperm ×₁ b # convert the problem to the mode-1 product
     return Cperm # no need to swap since the first dimention is dropped
 end
 
-const nmp = nmode_product # Short-hand alias
+"""
+Shorthand for [`nmode_product`](@ref).
+"""
+nmp = nmode_product # Short-hand alias
 
 """1-mode product between a tensor and a matrix"""
 ×₁(A::AbstractArray, B::AbstractMatrix) = mtt(B, A)
@@ -61,7 +72,7 @@ for (n, mode) in enumerate(modes)
         continue
     end
     fun_name = Symbol("×$mode")
-    fun_doc = "$n-mode product between a tensor and a matrix. See [`nmode_product`](@ref)."
+    fun_doc = """$n-mode product between a tensor and a matrix. See [`nmode_product`](@ref)."""
     eval(quote
         @doc $fun_doc $fun_name(A, B) = nmode_product(A, B, $n)
     end)
@@ -69,15 +80,16 @@ end
 
 
 # TODO boost performance of slicewise_dot by:
-# swapping the dimentions
+# swapping the dimensions
 """
     slicewise_dot(A::AbstractArray, B::AbstractArray; dims=1, dimsA=dims, dimsB=dims)
 
-Constracts all but the dimentions `dimsA` and `dimsB` of A and B by performing a dot product over each `dim=dimsX` slice.
+Contracts all but the dimensions `dimsA` and `dimsB` of A and B. Equivalent to `A` ⋅ₙ `B`
+where
 
-Generalizes `@einsum C[s,r] := A[s,j,k]*B[r,j,k]` to arbitrary dimentions.
+(A ⋅ₙ B)[i_dimsA, i_dimsB] = A[…, i_dimsA, ⋯] ⋅ B[…, i_dimsB, ⋯].
 
-For example, if A and B are both matrices, slicewise_dot(A, B) == A*B'
+For example, if A and B are both matrices, slicewise_dot(A, B) == A*B'.
 """
 function slicewise_dot(A::AbstractArray, B::AbstractArray; dims=1, dimsA=dims, dimsB=dims)
     C = zeros(size(A, dimsA), size(B, dimsB)) # Array{promote_type(T, U), 2}(undef, size(A, 1), size(B, 1)) doesn't seem to be faster
@@ -113,7 +125,7 @@ modes = ("₁", "₂", "₃", "₄", "₅", "₆", "₇", "₈", "₉")
 
 for (n, mode) in enumerate(modes)
     fun_name = Symbol("⋅$mode")
-    fun_doc = "Slicewise dot along mode $n. See [`slicewise_dot`](@ref)."
+    fun_doc = """Slicewise dot along mode $n. See [`slicewise_dot`](@ref)."""
     eval(quote
         @doc $fun_doc $fun_name(A, B) = slicewise_dot(A, B; dims=$n)
     end)
