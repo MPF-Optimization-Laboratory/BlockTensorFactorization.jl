@@ -206,21 +206,43 @@ end
 # If possible, factorize() should reframe the constraints to use eachcol
 # to speed up iterations
 
+"""ProjectedNormalization(l1norm, l1project!)"""
 const l1normalize! = ProjectedNormalization(l1norm, l1project!)
+"""ProjectedNormalization(l1norm, l1project!; whats_normalized=eachrow)"""
 const l1normalize_rows! = ProjectedNormalization(l1norm, l1project!; whats_normalized=eachrow)
+"""ProjectedNormalization(l1norm, l1project!; whats_normalized=eachcol)"""
 const l1normalize_cols! = ProjectedNormalization(l1norm, l1project!; whats_normalized=eachcol)
+"""ProjectedNormalization(l1norm, l1project!; whats_normalized=(x -> eachslice(x; dims=1)))"""
 const l1normalize_1slices! = ProjectedNormalization(l1norm, l1project!; whats_normalized=(x -> eachslice(x; dims=1)))
+"""ProjectedNormalization(l1norm, l1project!; whats_normalized=(x -> eachslice(x; dims=(1,2))))"""
 const l1normalize_12slices! = ProjectedNormalization(l1norm, l1project!; whats_normalized=(x -> eachslice(x; dims=(1,2))))
 
+"""all(isnonnegative, x) && sum(x) ≈ 1"""
 isnonnegative_sumtoone(x) = all(isnonnegative, x) && sum(x) ≈ 1
 
+"""ProjectedNormalization(isnonnegative_sumtoone, projsplx!)"""
 const simplex! = ProjectedNormalization(isnonnegative_sumtoone, projsplx!)
+"""ProjectedNormalization(isnonnegative_sumtoone, projsplx!; whats_normalized=eachrow)"""
 const simplex_rows! = ProjectedNormalization(isnonnegative_sumtoone, projsplx!; whats_normalized=eachrow)
+"""ProjectedNormalization(isnonnegative_sumtoone, projsplx!; whats_normalized=eachcol)"""
 const simplex_cols! = ProjectedNormalization(isnonnegative_sumtoone, projsplx!; whats_normalized=eachcol)
+"""ProjectedNormalization(isnonnegative_sumtoone, projsplx!; whats_normalized=(x -> eachslice(x; dims=1)))"""
 const simplex_1slices! = ProjectedNormalization(isnonnegative_sumtoone, projsplx!; whats_normalized=(x -> eachslice(x; dims=1)))
+"""ProjectedNormalization(isnonnegative_sumtoone, projsplx!; whats_normalized=(x -> eachslice(x; dims=(1,2))))"""
 const simplex_12slices! = ProjectedNormalization(isnonnegative_sumtoone, projsplx!; whats_normalized=(x -> eachslice(x; dims=(1,2))))
 
+"""
+    linftynorm(x::AbstractArray)
+
+Calculates ‖x‖_∞.
+"""
 linftynorm(x::AbstractArray) = maximum(abs, x)
+
+"""
+    linftyproject!(x::AbstractArray)
+
+Euclidean projection onto the unit L∞-ball.
+"""
 function linftyproject!(x::AbstractArray)
     if iszero(x)
         @warn "Input $x is zero, picking a closest element"
@@ -244,10 +266,21 @@ function linftyproject!(x::AbstractArray)
     end
 end
 
+"""ProjectedNormalization(linftynorm, linftyproject!)"""
 const linftynormalize! = ProjectedNormalization(linftynorm, linftyproject!)
+"""ProjectedNormalization(linftynorm, linftyproject!; whats_normalized=eachrow)"""
 const linftynormalize_rows! = ProjectedNormalization(linftynorm, linftyproject!; whats_normalized=eachrow)
+"""ProjectedNormalization(linftynorm, linftyproject!; whats_normalized=eachcol)"""
 const linftynormalize_cols! = ProjectedNormalization(linftynorm, linftyproject!; whats_normalized=eachcol)
+"""
+ProjectedNormalization(linftynorm, linftyproject!;
+    whats_normalized=(x -> eachslice(x; dims=1)))
+"""
 const linftynormalize_inftyslices! = ProjectedNormalization(linftynorm, linftyproject!; whats_normalized=(x -> eachslice(x; dims=1)))
+"""
+ProjectedNormalization(linftynorm, linftyproject!;
+    whats_normalized=(x -> eachslice(x; dims=(1,2))))
+"""
 const linftynormalize_12slices! = ProjectedNormalization(linftynorm, linftyproject!; whats_normalized=(x -> eachslice(x; dims=(1,2))))
 
 """
@@ -287,33 +320,57 @@ check(S::ScaledNormalization{<:Function}, A::AbstractArray) = all((S.norm).(S.wh
 
 ### Some standard rescaling ###
 
+"""ScaledNormalization(l2norm)"""
 const l2scale! = ScaledNormalization(l2norm)
+"""ScaledNormalization(l2norm; whats_normalized=eachrow)"""
 const l2scale_rows! = ScaledNormalization(l2norm; whats_normalized=eachrow)
+"""ScaledNormalization(l2norm; whats_normalized=eachcol)"""
 const l2scale_cols! = ScaledNormalization(l2norm; whats_normalized=eachcol)
+"""ScaledNormalization(l2norm; whats_normalized=(x -> eachslice(x; dims=1)))"""
 const l2scale_1slices! = ScaledNormalization(l2norm; whats_normalized=(x -> eachslice(x; dims=1)))
+"""ScaledNormalization(l2norm; whats_normalized=(x -> eachslice(x; dims=(1,2))))"""
 const l2scale_12slices! = ScaledNormalization(l2norm; whats_normalized=(x -> eachslice(x; dims=(1,2))))
 
+"""ScaledNormalization(l1norm)"""
 const l1scale! = ScaledNormalization(l1norm)
+"""ScaledNormalization(l1norm; whats_normalized=eachrow)"""
 const l1scale_rows! = ScaledNormalization(l1norm; whats_normalized=eachrow)
+"""ScaledNormalization(l1norm; whats_normalized=eachcol)"""
 const l1scale_cols! = ScaledNormalization(l1norm; whats_normalized=eachcol)
+"""ScaledNormalization(l1norm; whats_normalized=(x -> eachslice(x; dims=1)))"""
 const l1scale_1slices! = ScaledNormalization(l1norm; whats_normalized=(x -> eachslice(x; dims=1)))
+"""ScaledNormalization(l1norm; whats_normalized=(x -> eachslice(x; dims=(1,2))))"""
 const l1scale_12slices! = ScaledNormalization(l1norm; whats_normalized=(x -> eachslice(x; dims=(1,2))))
 
+"""ScaledNormalization(linftynorm)"""
 const linftyscale! = ScaledNormalization(linftynorm)
+"""ScaledNormalization(linftynorm; whats_normalized=eachrow)"""
 const linftyscale_rows! = ScaledNormalization(linftynorm; whats_normalized=eachrow)
+"""ScaledNormalization(linftynorm; whats_normalized=eachcol)"""
 const linftyscale_cols! = ScaledNormalization(linftynorm; whats_normalized=eachcol)
+"""ScaledNormalization(linftynorm; whats_normalized=(x -> eachslice(x; dims=1)))"""
 const linftyscale_1slices! = ScaledNormalization(linftynorm; whats_normalized=(x -> eachslice(x; dims=1)))
+"""ScaledNormalization(linftynorm; whats_normalized=(x -> eachslice(x; dims=(1,2))))"""
 const linftyscale_12slices! = ScaledNormalization(linftynorm; whats_normalized=(x -> eachslice(x; dims=(1,2))))
 
+"""ScaledNormalization(l1norm;
+    whats_normalized=(x -> eachslice(x; dims=1)),
+    scale=(A -> size(A, 2)))"""
 const l1scale_average12slices! = ScaledNormalization(l1norm;
     whats_normalized=(x -> eachslice(x; dims=1)),
     scale=(A -> size(A, 2))) # the length of the second dimention "J"
+"""ScaledNormalization(l2norm;
+    whats_normalized=(x -> eachslice(x; dims=1)),
+    scale=(A -> size(A, 2)))"""
 const l2scale_average12slices! = ScaledNormalization(l2norm;
     whats_normalized=(x -> eachslice(x; dims=1)),
-    scale=(A -> size(A, 2))) # the length of the second dimention "J"
+    scale=(A -> size(A, 2)))
+"""ScaledNormalization(linftynorm;
+    whats_normalized=(x -> eachslice(x; dims=1)),
+    scale=(A -> size(A, 2)))"""
 const linftyscale_average12slices! = ScaledNormalization(linftynorm;
     whats_normalized=(x -> eachslice(x; dims=1)),
-    scale=(A -> size(A, 2))) # the length of the second dimention "J"
+    scale=(A -> size(A, 2)))
 
 # Convert between ScaledNormalization and ProjectedNormalization
 ScaledNormalization(P::ProjectedNormalization) = ScaledNormalization(P.norm; whats_normalized=P.whats_normalized)
@@ -342,8 +399,10 @@ Checks if `A` is entrywise constrained
 """
 check(C::Entrywise, A::AbstractArray) = all((C.check).(A))
 
+"""Entrywise(ReLU, isnonnegative)"""
 const nonnegative! = Entrywise(ReLU, isnonnegative)
 
+"""Entrywise(x -> clamp(x, a, b), x -> a ≤ x ≤ b)"""
 IntervalConstraint(a, b) = Entrywise(x -> clamp(x, a, b), x -> a ≤ x ≤ b)
 
 function binaryproject(x)
@@ -354,6 +413,7 @@ function binaryproject(x)
     end
 end
 
+"""Entrywise(binaryproject, x -> x in (0, 1))"""
 const binary! = Entrywise(binaryproject, x -> x in (0, 1)) # this is a 0, 1 tuple, not an open intervel
 
 """
