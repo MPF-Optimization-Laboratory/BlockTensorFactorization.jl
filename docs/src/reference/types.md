@@ -1,11 +1,8 @@
-# Core Public Interface
-
-```@contents
-Depth = 2
-```
+# Types
 
 ```@autodocs
 Modules = [BlockTensorFactorization.Core]
+Order = [:type]
 ```
 
 ```@index
