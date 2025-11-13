@@ -33,10 +33,9 @@ function nmode_product(A::AbstractArray, b::AbstractVector, n::Integer)
     return Cperm # no need to swap since the first dimension is dropped
 end
 
-"""
-Shorthand for [`nmode_product`](@ref).
-"""
-nmp = nmode_product # Short-hand alias
+const nmp = nmode_product # Short-hand alias
+
+@doc "Shorthand for [`nmode_product`](@ref)." nmp
 
 """1-mode product between a tensor and a matrix"""
 ×₁(A::AbstractArray, B::AbstractMatrix) = mtt(B, A)
@@ -72,12 +71,12 @@ for (n, mode) in enumerate(modes)
         continue
     end
     fun_name = Symbol("×$mode")
-    fun_doc = """$n-mode product between a tensor and a matrix. See [`nmode_product`](@ref)."""
+    fun_doc = "$n-mode product between a tensor and a matrix. See [`nmode_product`](@ref)."
     eval(quote
-        @doc $fun_doc $fun_name(A, B) = nmode_product(A, B, $n)
+        $fun_name(A, B) = nmode_product(A, B, $n)
+        @doc $fun_doc $fun_name
     end)
 end
-
 
 # TODO boost performance of slicewise_dot by:
 # swapping the dimensions
@@ -125,9 +124,10 @@ modes = ("₁", "₂", "₃", "₄", "₅", "₆", "₇", "₈", "₉")
 
 for (n, mode) in enumerate(modes)
     fun_name = Symbol("⋅$mode")
-    fun_doc = """Slicewise dot along mode $n. See [`slicewise_dot`](@ref)."""
+    fun_doc = "Slice-wise dot along mode $n. See [`slicewise_dot`](@ref)."
     eval(quote
-        @doc $fun_doc $fun_name(A, B) = slicewise_dot(A, B; dims=$n)
+        $fun_name(A, B) = slicewise_dot(A, B; dims=$n)
+        @doc $fun_doc $fun_name
     end)
 end
 

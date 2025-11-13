@@ -64,7 +64,7 @@ mtt(A, G) == Z # matrix times tensor
 
 ## Iteration Statistics
 
-The output variable `stats` is a `DataFrame` that records the requested stats every iteration. You can pass a list of supported stats, or custom stats. See [`Iteration Stats`](@ref) for more details.
+The output variable `stats` is a `DataFrame` that records the requested stats every iteration. You can pass a list of supported stats, or custom stats. See [Iteration Stats](@ref) for more details.
 
 By default, the iteration number, objective value (L2 norm between the input and the model in this case), and the Euclidian norm of the gradient (of the loss function at the current iteration) are recorded. The following would reproduce the default stats in our running example.
 

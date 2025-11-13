@@ -1,10 +1,10 @@
-# Decomposiiton Models
+# Decomposition Models
 
 ```docs
 AbstractDecomposition
 ```
 
-The following common tensor models are avalible as valid arguments to `model` and built into this package.
+The following common tensor models are available as valid arguments to `model` and built into this package.
 
 ```
 Tucker

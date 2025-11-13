@@ -115,11 +115,11 @@ end
 #end
 
 """
-    DEFAULT_N_SAMPLES = 64::Integer
+    DEFAULT_N_SAMPLES = 64::Int
 
 Number of samples to use when standardizing a vector of density estimates.
 """
-const DEFAULT_N_SAMPLES = 64::Integer
+const DEFAULT_N_SAMPLES = 64::Int
 
 """
     standardize_KDEs(KDEs::AbstractVector{UnivariateKDE}; n_samples=DEFAULT_N_SAMPLES,)
