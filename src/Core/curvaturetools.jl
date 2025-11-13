@@ -221,15 +221,16 @@ end
 """
     cubic_spline_coefficients(y::AbstractVector{<:Real}; h=1)
 
-Calculates the list of coefficients a, b, c, d for an interpolating spline.
+Calculates the list of coefficients `a`, `b`, `c`, `d` for an interpolating spline.
 
-The spline is defined as f(x) = g_i(x) on x[i] ≤ x ≤ x[i+1] where
-g_i(x) = a[i]*(x-x[i])^3 + b[i]*(x-x[i])^2 + c[i]*(x-x[i]) + d[i]
+The spline is defined as ``f(x) = g_i(x)`` on ``x[i] \\leq x \\leq x[i+1]`` where
+
+``g_i(x) = a[i](x-x[i])^3 + b[i](x-x[i])^2 + c[i](x-x[i]) + d[i]``
 
 Uses the following boundary conditions
-- g_1(x[1]-h) = 1 (i.e. the y-intercept is (0,1) for uniform spaced x=1:n)
-- g_n(x[n]+h) = x[n] (i.e. repeated right end-point)
-- g_n''(x[n]+h) = 0 (i.e. flat/no-curvature one spacing after end-point)
+- ``g_1(x[1]-h) = 1`` (i.e. the ``y``-intercept is ``(0,1)`` for uniform spaced `x=1:n`)
+- ``g_n(x[n]+h) = x[n]`` (i.e. repeated right end-point)
+- ``g_n''(x[n]+h) = 0`` (i.e. flat/no-curvature one spacing after end-point)
 """
 function cubic_spline_coefficients(y::AbstractVector{<:Real}; h=1)
     # Set up variables
