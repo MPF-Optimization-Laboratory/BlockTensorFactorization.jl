@@ -2,7 +2,6 @@
 Mid level code that combines constraints with block updates to be used on an AbstractDecomposition
 """
 
-
 """
 Interface to make a step scheme is
 
@@ -27,10 +26,21 @@ to compute the step size.
 """
 abstract type AbstractStep <: Function end
 
+"""
+    LipschitzStep <: AbstractStep
+
+Has a single property `lipschitz` which stores a function for calculating the Lipschitz
+constant of the gradient with respect to a factor.
+"""
 struct LipschitzStep <: AbstractStep
     lipschitz::Function
 end
 
+"""
+    (step::LipschitzStep)(x; kwargs...)
+
+Computes the step size 1/L.
+"""
 function (step::LipschitzStep)(x; kwargs...)
     L = step.lipschitz(x)
     try

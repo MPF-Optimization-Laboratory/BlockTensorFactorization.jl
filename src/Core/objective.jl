@@ -15,6 +15,16 @@ myobjective(X, Y)
 """
 abstract type AbstractObjective <: Function end
 
+"""
+    L2 <: AbstractObjective
+
+The least squares objective.
+"""
 struct L2 <: AbstractObjective end
 
-(O::L2)(X, Y) = norm2(X - Y)
+"""
+    (objective::L2)(X, Y)
+
+Calculates the least squares objective at tensors `X` and `Y`.
+"""
+(objective::L2)(X, Y) = norm2(X - Y)
