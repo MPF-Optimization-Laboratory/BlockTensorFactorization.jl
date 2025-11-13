@@ -19,31 +19,31 @@ X, stats, kwargs = factorize(Y; model=CPDecomposition, rank=5,
 ## Ready-to-use Constraints
 
 ### Entrywise
-```@docs
+```@docs; canonical=false
 Entrywise
 ```
 
 The constraints `nonnegative!` and `binary!` ensure each entry in a factor is nonnegative and either 0 or 1 respectively.
 
-```@docs
+```@docs; canonical=false
 nonnegative!
 binary!
 ```
 
 If you want every entry to be in the closed intervel `a`, `b`, you can use `IntervelConstraint(a, b)`.
 
-```@docs
+```@docs; canonical=false
 IntervalConstraint
 ```
 
 ### Normalizations
-```@docs
+```@docs; canonical=false
 ProjectedNormalization
 ```
 
 These ensure a factor is normalized according to the L1, L2, & L infinity norms. This is accomplished through a Euclidian projections onto the unit ball.
 
-```@docs
+```@docs; canonical=false
 l1normalize!
 l2normalize!
 linftynormalize!
@@ -51,21 +51,21 @@ linftynormalize!
 
 Each come in versions that constrain each row, column, order-1 slice, & order-(1, 2) slice to the associated unit norm ball.
 
-```@docs
+```@docs; canonical=false
 l1normalize_rows!
 l1normalize_cols!
 l1normalize_1slices!
 l1normalize_12slices!
 ```
 
-```@docs
+```@docs; canonical=false
 l2normalize_rows!
 l2normalize_cols!
 l2normalize_1slices!
 l2normalize_12slices!
 ```
 
-```@docs
+```@docs; canonical=false
 linftynormalize_rows!
 linftynormalize_cols!
 linftynormalize_1slices!
@@ -76,7 +76,7 @@ linftynormalize_12slices!
     Projection onto the unit norm ball from the origin is not unique at the origin so do not expect consistant behaviour with an all-zeros input.
 
 ### Scaling Constraints
-```@docs
+```@docs; canonical=false
 ScaledNormalization
 ```
 
@@ -88,7 +88,7 @@ Each previously listed normalization has an associated scaled normalization. The
 !!! details "Example"
     Say we are performing CPDecomposition on a matrix `Y`. This is equivelent to factorizing `Y = A * B'`. If we would like all columns of `B` (rows of `B` transpose) to be on the L1 ball, rather than projecting each column, we can instead divide each column of `B` by its L1 norm, and multiply the associated column of `A` by this amount. This has the advantage of enforing our constraint without effecting the product `A * B'`, whereas a projection would possibly change this product.
 
-```@docs
+```@docs; canonical=false
 l1scale!
 l1scale_rows!
 l1scale_cols!
@@ -96,7 +96,7 @@ l1scale_1slices!
 l1scale_12slices!
 ```
 
-```@docs
+```@docs; canonical=false
 l2scale!
 l2scale_rows!
 l2scale_cols!
@@ -104,7 +104,7 @@ l2scale_1slices!
 l2scale_12slices!
 ```
 
-```@docs
+```@docs; canonical=false
 linftyscale!
 linftyscale_rows!
 linftyscale_cols!
@@ -114,7 +114,7 @@ linftyscale_12slices!
 
 There is also a set of constraints that ensure the order-(1,2) slices are scaled on average. This makes preserving a Tucker1 product possible where you would like each order-(1,2) normalized.
 
-```@docs
+```@docs; canonical=false
 l1scale_average12slices!
 l2scale_average12slices!
 linftyscale_average12slices!
@@ -123,7 +123,7 @@ linftyscale_average12slices!
 ### Simplex Constraint
 Similar to the L1 normalization constraint, these constraints ensure the relevent subarrays are on the L1 ball. But these also ensure all entries are positive. This is enforced with a single Euclidian projection onto the relevent simplex.
 
-```@docs
+```@docs; canonical=false
 simplex!
 simplex_cols!
 simplex_1slices!
@@ -154,7 +154,7 @@ X, stats, kwargs = factorize(Y; model=CPDecomposition, rank=3,
 
 `AbstractConstraint` types can be composed with `\circ` (and hitting tab to make `∘`) creating a `ComposedConstraint`.
 
-```@docs
+```@docs; canonical=false
 ComposedConstraint
 ```
 
@@ -187,7 +187,7 @@ IntervalConstraint(a, b) = Entrywise(x -> clamp(x, a, b), x -> a <= x <= b)
 
 You can also make a custom constraint with `GenericConstraint`.
 
-```@docs
+```@docs; canonical=false
 GenericConstraint
 ```
 
@@ -195,7 +195,7 @@ GenericConstraint
 
 You can manually define the `ConstraintUpdate` that gets applied as part of the block decomposition method. These will be automatically inserted into the order of updates immediately following the last update of the matching block with `smart_interlace!`.
 
-```@docs
+```@docs; canonical=false
 smart_interlace!
 smart_insert!
 ```
@@ -230,12 +230,12 @@ BlockUpdate(
 
 Note the order `[ConstraintUpdate(3, nonnegative!), Projection(2, simplex!)]` does *not* matter. Also, using the (abstract) constructor `ConstraintUpdate` will reduce to the concreate types when possible.
 
-```@docs
+```@docs; canonical=false
 ConstraintUpdate
 ```
 
 When using `ScaledNormalization`s, you may want to manually define what gets rescaled using the downstream `ConstraintUpdate` concreate type: `Rescale`.
 
-```@docs
+```@docs; canonical=false
 Rescale
 ```
