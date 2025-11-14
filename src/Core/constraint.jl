@@ -184,10 +184,15 @@ function l2project!(x::AbstractArray)
     x ./= l2norm(x)
 end
 
+"""ProjectedNormalization(l2norm, l2project!)"""
 l2normalize! = ProjectedNormalization(l2norm, l2project!)
+"""ProjectedNormalization(l2norm, l2project!; whats_normalized=eachrow)"""
 l2normalize_rows! = ProjectedNormalization(l2norm, l2project!; whats_normalized=eachrow)
+"""ProjectedNormalization(l2norm, l2project!; whats_normalized=eachcol)"""
 l2normalize_cols! = ProjectedNormalization(l2norm, l2project!; whats_normalized=eachcol)
+"""ProjectedNormalization(l2norm, l2project!; whats_normalized=(x -> eachslice(x; dims=1)))"""
 l2normalize_1slices! = ProjectedNormalization(l2norm, l2project!; whats_normalized=(x -> eachslice(x; dims=1)))
+"""ProjectedNormalization(l2norm, l2project!; whats_normalized=(x -> eachslice(x; dims=(1,2))))"""
 l2normalize_12slices! = ProjectedNormalization(l2norm, l2project!; whats_normalized=(x -> eachslice(x; dims=(1,2))))
 
 l1norm(x::AbstractArray) = mapreduce(abs, +, x)
