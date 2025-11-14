@@ -35,4 +35,5 @@ makedocs(
 
 deploydocs(
     repo = "github.com/MPF-Optimization-Laboratory/BlockTensorFactorization.jl.git",
+    versions = ["stable" => "v^", "v#.#" ],
 )
