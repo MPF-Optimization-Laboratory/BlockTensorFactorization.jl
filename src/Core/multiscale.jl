@@ -9,7 +9,7 @@ Coarsens or downsamples `Y` by `scale`. Only keeps every `scale` entries along t
 
 Example
 =======
-
+```
 Y = randn(12, 12, 12)
 
 coarsen(Y, 2) == Y[begin:2:end, begin:2:end, begin:2:end]
@@ -17,6 +17,7 @@ coarsen(Y, 2) == Y[begin:2:end, begin:2:end, begin:2:end]
 coarsen(Y, 4; dims=(1, 3)) == Y[begin:4:end, :, begin:4:end]
 
 coarsen(Y, 3; dims=2) == Y[:, begin:3:end, :]
+```
 """
 coarsen(Y::AbstractArray, scale::Integer; dims=1:ndims(Y), kwargs...) =
     Y[(d in dims ? axis[begin:scale:end] : axis for (d, axis) in enumerate(axes(Y)))...]
@@ -41,7 +42,7 @@ Like the opposite of [`coarsen`](@ref).
 
 Example
 =======
-
+```
 julia> Y = collect(reshape(1:6, 2, 3))
 2×3 Matrix{Int64}:
  1  3  5
@@ -60,6 +61,7 @@ julia> interpolate(Y, 3; dims=2)
 
 julia> interpolate(Y, 1) == Y
 true
+```
 """
 function interpolate(Y::AbstractArray, scale; dims=1:ndims(Y), degree=0, kwargs...)
     # Quick exit if no interpolation is needed

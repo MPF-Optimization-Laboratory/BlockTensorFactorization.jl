@@ -270,7 +270,8 @@ end
 Tucker decomposition. Takes the form of a core `G` times a matrix for each dimension.
 
 For example, a rank (r, s, t) Tucker decomposition of an order three tensor D would be, entry-wise,
-D[i, j, k] = ∑_r ∑_s ∑_t G[r, s, t] * A[i, r] * B[j, s] * C[k, t].
+
+`D[i, j, k] = ∑_r ∑_s ∑_t G[r, s, t] * A[i, r] * B[j, s] * C[k, t]`.
 
 Optionally use `frozen::Tuple{Bool}` to specify which factors are [`frozen`](@ref).
 
@@ -286,7 +287,7 @@ end
 
 Tucker-1 decomposition. Takes the form of a core `G` times a matrix `A`. Entry-wise
 
-D[i₁, …, i_N] = ∑_r G[r, i₂, …, i_N] * A[i₁, r].
+`D[i₁, …, i_N] = ∑_r G[r, i₂, …, i_N] * A[i₁, r]`.
 
 Optionally use `frozen::Tuple{Bool}` to specify which factors are [`frozen`](@ref).
 
@@ -362,7 +363,7 @@ eachrank1term(T::AbstractTucker) = error("eachrank1term is not yet implemented f
 """
     eachrank1term(T::Tucker1)
 
-The (Tucker-1) rank-1 tensors Tr[i1, ..., iN] = A[i1,r] * B[r, i2, ..., iN] for each r = 1, ..., rankof(T).
+The (Tucker-1) rank-1 tensors `Tr[i1, ..., iN] = A[i1, r] * B[r, i2, ..., iN]` for each `r = 1, …, rankof(T)`.
 """
 eachrank1term(T::Tucker1) = (Ar .* reshape_ndims(Br, ndims(T)) for (Br, Ar) in zip(eachslice(core(T); dims=1), eachcol(matrix_factor(T, 1))))
 
@@ -450,7 +451,7 @@ core(CPD::CPDecomposition{T, N}) where {T, N} = identity_tensor(T, rankof(CPD), 
 """
     eachrank1term(T::CPDecomposition)
 
-The (CP) rank-1 tensors Tr[i1, ..., iN] = A1[i1, r] * ... * AN[iN, r]  for each r = 1, ..., rankof(T).
+The (CP) rank-1 tensors `Tr[i1, ..., iN] = A1[i1, r] * … * AN[iN, r]`  for each `r = 1, …, rankof(T)`.
 """
 eachrank1term(CPD::CPDecomposition) = (reduce(.*, reshape_ndims(col, i) for (i, col) in enumerate(cols)) for cols in zip((map(eachcol, factors(CPD)))...))
 

@@ -1,14 +1,14 @@
 """
-Different tensor products. Note these do not use Einsum/Tullio or any entrywise notation
+Different tensor products. Note these do not use Einsum/Tullio or any entry-wise notation
 since these are defined generally for arbitrarily ordered tensors/arrays.
 """
 
 """
     nmode_product(A::AbstractArray, B::AbstractMatrix, n::Integer)
 
-Contracts the `n`th mode of `A`` with the first mode of `B`. Equivalent to `A` ×ₙ `B` where
+Contracts the `n`th mode of `A` with the first mode of `B`. Equivalent to `A` ×ₙ `B` where
 
-(A ×ₙ B)[i₁, …, i_N] = ∑ⱼ A[i₁, …, iₙ₋₁, j, iₙ₊₁, …, i_N] B[iₙ, j].
+`(A ×ₙ B)[i₁, …, i_N] = ∑ⱼ A[i₁, …, iₙ₋₁, j, iₙ₊₁, …, i_N] B[iₙ, j]`.
 """
 function nmode_product(A::AbstractArray, B::AbstractMatrix, n::Integer)
     Aperm = swapdims(A, n)
@@ -25,7 +25,7 @@ end
 
 Contracts the `n`th mode of `A` with `b`. Equivalent to `A` ×ₙ `b` where
 
-(A ×ₙ b)[i₁, …, iₙ₋₁, iₙ₊₁, …, i_N] = ∑_iₙ A[i₁, …, i_N] b[iₙ].
+`(A ×ₙ b)[i₁, …, iₙ₋₁, iₙ₊₁, …, i_N] = ∑_iₙ A[i₁, …, i_N] b[iₙ]`.
 """
 function nmode_product(A::AbstractArray, b::AbstractVector, n::Integer)
     Aperm = swapdims(A, n)
@@ -42,9 +42,12 @@ const nmp = nmode_product # Short-hand alias
 ×₁(A::AbstractArray, b::AbstractVector) = dropdims(mtt(b', A); dims=1)
 
 """
-Matrix times Tensor
+    mtt(A::AbstractMatrix, B::AbstractArray)
 
-Looks like C[i1, i2, ..., iN] = ∑_r A[i1, r] * B[r, i2, ..., iN] entry-wise.
+
+Matrix Times Tensor. Entry-wise,
+
+`mtt(A, B)[i1, i2, …, iN] = ∑_r A[i1, r] * B[r, i2, …, iN]`.
 """
 function mtt(A::AbstractMatrix, B::AbstractArray)
     sizeB = size(B)
@@ -83,12 +86,11 @@ end
 """
     slicewise_dot(A::AbstractArray, B::AbstractArray; dims=1, dimsA=dims, dimsB=dims)
 
-Contracts all but the dimensions `dimsA` and `dimsB` of A and B. Equivalent to `A` ⋅ₙ `B`
-where
+Contracts all but the dimensions `dimsA` and `dimsB` of A and B. Entry-wise
 
-(A ⋅ₙ B)[i_dimsA, i_dimsB] = A[…, i_dimsA, ⋯] ⋅ B[…, i_dimsB, ⋯].
+`(slicewise_dot(A,B; dimsA, dimsB))[i_dimsA, i_dimsB] = A[…, i_dimsA, ⋯] ⋅ B[…, i_dimsB, ⋯]`.
 
-For example, if A and B are both matrices, slicewise_dot(A, B) == A*B'.
+When `dims==n`, equivalent to `A ⋅ₙ B`. If A and B are both matrices, `slicewise_dot(A, B) == A'B`.
 """
 function slicewise_dot(A::AbstractArray, B::AbstractArray; dims=1, dimsA=dims, dimsB=dims)
     C = zeros(size(A, dimsA), size(B, dimsB)) # Array{promote_type(T, U), 2}(undef, size(A, 1), size(B, 1)) doesn't seem to be faster
@@ -148,10 +150,12 @@ arguments as matrices in a Tucker decomposition.
 
 Example
 -------
+```
 tuckerproduct(G, (A, B, C)) == G ×₁ A ×₂ B ×₃ C
 tuckerproduct(G, (A, B, C); exclude=2) == G ×₁ A ×₃ C
 tuckerproduct(G, (A, B, C); exclude=2, excludes_missing=false) == G ×₁ A ×₃ C
 tuckerproduct(G, (A, C); exclude=2, excludes_missing=true) == G ×₁ A ×₃ C
+````
 """
 function tuckerproduct(core, matrices; exclude=nothing, excludes_missing=false)
     N = ndims(core)

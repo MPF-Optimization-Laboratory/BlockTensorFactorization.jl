@@ -61,14 +61,14 @@ end
 
 Returns the rank of possible ranks `Y` could have under the `model`.
 
-For matrices I×J this is 1:min(I, J). This is can be extended to tensors for different type
+For matrices `I × J` this is `1:min(I, J)`. This is can be extended to tensors for different type
 of decompositions.
 
-Tucker-1 rank is ≤ min(I, prod(J1,...,JN)) for tensors I×J1×...×JN.
+Tucker-1 rank is `≤ min(I, prod(J1,...,JN))` for tensors `I × J1 × … × JN`.
 
-The CP-rank is ≤ minimum_{n} (prod(I1,...,IN) / In) for tensors I1×...×IN in general. Although
-some shapes have have tighter upper bounds. For example, 2×I×I tensors over ℝ have a maximum
-rank of floor(3I/2).
+The CP-rank is `≤ minimum_{n} (prod(I1,...,IN) / In)` for tensors `I1 × … × IN` in general. Although
+some shapes have have tighter upper bounds. For example, `2 × I × I` tensors over ℝ have a maximum
+rank of `floor(3I/2)`.
 """
 function possible_ranks(Y, model)
     if model <: Tucker1

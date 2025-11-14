@@ -235,7 +235,7 @@ Uses the following boundary conditions
 function cubic_spline_coefficients(y::AbstractVector{<:Real}; h=1)
     # Set up variables
     n = length(y)
-    T = eltype(y)
+    #T = eltype(y)
     f = diff([y; y[end]]) # use diff([y; zero(T)]) to clamp at a y value of 0 instead of a repeated boundary condition
 
     # solve the system Mb=v
@@ -255,7 +255,7 @@ end
 """
     spline_mat(n)
 
-Creates the `Tridiagonal` matrix to solve for coefficients b.
+Creates the `Tridiagonal` matrix to solve for coefficients `b`. See [`cubic_spline_coefficients`](@ref).
 """
 function spline_mat(n)
     du = [0; ones(Int, n-1)]

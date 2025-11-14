@@ -317,11 +317,13 @@ Like `foldl`, but with a different folding operation between each argument.
 
 Example
 =======
+```
 julia> multifoldl((+,*,-), (2,3,4,5))
 15
 
 julia> ((2 + 3) * 4) - 5
 15
+```
 """
 function multifoldl(ops, args)
     @assert (length(ops) + 1) == length(args)
@@ -384,6 +386,7 @@ When n > ndims(x), extra dimensions are prepended. Otherwise, trailing dimension
 
 Example
 =======
+```
 julia> x = [1, 2, 3]
 3-element Vector{Int64}:
  1
@@ -411,7 +414,7 @@ julia> reshape_ndims(x, 3)
 [:, :, 3] =
  3
 
-julia> A = reshape(collect(1:12), 2,2,3)
+julia> A = reshape(collect(1:12), 2, 2, 3)
 2×2×3 Array{Int64, 3}:
 [:, :, 1] =
  1  3
@@ -429,6 +432,7 @@ julia> reshape_ndims(A, 2)
 2×6 Matrix{Int64}:
  1  3  5  7   9  11
  2  4  6  8  10  12
+```
 
 Credit: https://discourse.julialang.org/t/outer-product-broadcast/103731/7
 """
