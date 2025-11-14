@@ -42,7 +42,7 @@ jobs:
         run: |
           julia --project=benchmark -e '
             using Pkg;
-            Pkg.add("BenchmarkingTools");
+            Pkg.add("BenchmarkTools");
             Pkg.develop(PackageSpec(path=pwd()));
             Pkg.instantiate()'
       - name: Run benchmark

@@ -3,7 +3,7 @@ Benchmarks
 """
 
 using Random
-using BenchmarkingTools
+using BenchmarkTools
 
 using BlockTensorFactorization
 
