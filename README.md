@@ -1,9 +1,11 @@
 # BlockTensorFactorization.jl
 
-[![docs-dev][docs-dev-img]][docs-dev-url]
+[![docs-dev][docs-dev-img]][docs-dev-url] [![codecov][codecov-img]][codecov-url]
 
 [docs-dev-img]: https://img.shields.io/badge/docs-dev-purple.svg
 [docs-dev-url]: https://mpf-optimization-laboratory.github.io/BlockTensorFactorization.jl
+[codecov-img]: https://codecov.io/gh/MPF-Optimization-Laboratory/BlockTensorFactorization.jl/graph/badge.svg?token=CN858JYR4V
+[codecov-url]: https://codecov.io/gh/MPF-Optimization-Laboratory/BlockTensorFactorization.jl
 
 BlockTensorFactorization.jl is a package to factorize tensors. The main feature is its flexibility at decomposing input tensors according to many common tensor models (ex. CP, Tucker) with a number of constraints (ex. nonnegative, simplex), while also supporting user-defined models, constraints, and optimization updates.
 
