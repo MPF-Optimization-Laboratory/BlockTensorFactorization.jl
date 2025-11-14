@@ -91,20 +91,4 @@ export coarsen, interpolate, linear_smooth, scale_constraint
 export rank_detect_factorize
 export possible_ranks
 
-# Legacy code
-include("./MatrixTensorFactor/MatrixTensorFactor.jl")
-using .MatrixTensorFactor
-
-export nnmtf, nnmtf_proxgrad_online # Functions
-
-export IMPLIMENTED_OPTIONS, IMPLIMENTED_NORMALIZATIONS, IMPLIMENTED_METRICS
-export IMPLIMENTED_PROJECTIONS, IMPLIMENTED_CRITERIA, IMPLIMENTED_STEPSIZES # implimented options
-
-include("./DensityEstimationTools/DensityEstimationTools.jl")
-using .DensityEstimationTools
-
-export DEFAULT_ALPHA, DEFAULT_N_SAMPLES
-export default_bandwidth, make_densities, make_densities2d, standardize_KDEs, standardize_2d_KDEs, filter_inner_percentile, filter_2d_inner_percentile # Functions
-export repeatcoord, kde2d, coordzip # 2d density estimation functions
-
 end # module BlockTensorFactorization
