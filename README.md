@@ -13,7 +13,7 @@ If you find this package useful in anyway, please cite this repository with the 
 
 ```tex
 @misc{richardson_blocktensorfactorization_2025,
-    title = {BlockTensorFactorization.jl v0.2.0},
+    title = {BlockTensorFactorization.jl v0.3.0},
 	url = {https://github.com/MPF-Optimization-Laboratory/BlockTensorFactorization.jl},
 	author = {Richardson, Nicholas and Marusenko, Noah and Friedlander, Michael P.},
 	year = {2025},
