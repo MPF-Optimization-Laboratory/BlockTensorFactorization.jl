@@ -11,15 +11,25 @@ Base.length(_::Type{<:AbstractStat}) = 1
 Base.iterate(x::Type{<:AbstractStat}, state=1) = state > 1 ? nothing : (x, state+1)
 #Base.eltype(x::Type{<:AbstractStat}) = typeof(x)
 
+"""
+    Iteration <: AbstractStat
+
+Iteration number.
+"""
 struct Iteration <: AbstractStat
     function Iteration(; kwargs...) # must define it this way so the constructor can take (and ignore) kwargs
         new()
     end
 end
-# This does not work since the pattern (; kwargs...) counts as the same input as the empty ()
+# The following does not work since the pattern (; kwargs...) counts as the same input as the empty ()
 # so Julia thinks you are redefining Iteration() = Iteration() in a circular manner
 # Iteration(; kwargs...) = Iteration()
 
+"""
+    GradientNorm{T} <: AbstractStat
+
+2-norm of the gradient.
+"""
 struct GradientNorm{T} <: AbstractStat
     gradients::T
     function GradientNorm{T}(gradients) where T
@@ -29,6 +39,11 @@ struct GradientNorm{T} <: AbstractStat
 end
 GradientNorm(; gradients, kwargs...) = GradientNorm{typeof(gradients)}(gradients)
 
+"""
+    GradientNNCone{T} <: AbstractStat
+
+2-norm vector-set distance between the negative gradient and nonnegative cone at the iterate.
+"""
 struct GradientNNCone{T} <: AbstractStat
     gradients::T
     function GradientNNCone{T}(gradients) where T
@@ -38,27 +53,52 @@ struct GradientNNCone{T} <: AbstractStat
 end
 GradientNNCone(; gradients, kwargs...) = GradientNNCone{typeof(gradients)}(gradients)
 
+"""
+    ObjectiveValue{T<:AbstractObjective} <: AbstractStat
+
+The current objective value.
+"""
 struct ObjectiveValue{T<:AbstractObjective} <: AbstractStat
     objective::T
 end
 ObjectiveValue(; objective, kwargs...) = ObjectiveValue(objective)
 
+"""
+    ObjectiveRatio{T<:AbstractObjective} <: AbstractStat
+
+Ratio between the previous and current objective value.
+"""
 struct ObjectiveRatio{T<:AbstractObjective} <: AbstractStat
     objective::T
 end
 ObjectiveRatio(; objective, kwargs...) = ObjectiveRatio(objective)
 
+"""
+    RelativeError{T<:Function} <: AbstractStat
+
+Relative error between the decomposition model, and input array.
+"""
 struct RelativeError{T<:Function} <: AbstractStat
     norm::T
 end
 RelativeError(; norm, kwargs...) = RelativeError(norm)
 
+"""
+    IterateNormDiff{T<:Function} <: AbstractStat
+
+2-norm of the difference between the previous and current iterate.
+"""
 struct IterateNormDiff{T<:Function} <: AbstractStat
     norm::T
 end
 
 IterateNormDiff(; norm, kwargs...) = IterateNormDiff(norm)
 
+"""
+    IterateRelativeDiff{T<:Function} <: AbstractStat
+
+Relative difference between the previous and current iterate.
+"""
 struct IterateRelativeDiff{T<:Function} <: AbstractStat
     norm::T
 end
