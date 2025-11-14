@@ -144,10 +144,8 @@ Examples
 """
 rankof(D::AbstractDecomposition) = size.(factors(D))
 
-const DEFAULT_INIT = randn
-
 """Default initialization function to use when creating a random decomposition."""
-DEFAULT_INIT
+const DEFAULT_INIT = randn
 
 """
 Most general decomposition. Takes the form of interweaving contractions between the factors.

@@ -206,6 +206,8 @@ end
 # If possible, factorize() should reframe the constraints to use eachcol
 # to speed up iterations
 
+# TODO make all these aliases programmatically
+
 """ProjectedNormalization(l1norm, l1project!)"""
 l1normalize! = ProjectedNormalization(l1norm, l1project!)
 """ProjectedNormalization(l1norm, l1project!; whats_normalized=eachrow)"""
@@ -272,11 +274,7 @@ linftynormalize! = ProjectedNormalization(linftynorm, linftyproject!)
 linftynormalize_rows! = ProjectedNormalization(linftynorm, linftyproject!; whats_normalized=eachrow)
 """ProjectedNormalization(linftynorm, linftyproject!; whats_normalized=eachcol)"""
 linftynormalize_cols! = ProjectedNormalization(linftynorm, linftyproject!; whats_normalized=eachcol)
-"""
-ProjectedNormalization(linftynorm, linftyproject!;
-    whats_normalized=(x -> eachslice(x; dims=1)))
-"""
-linftynormalize_inftyslices! = ProjectedNormalization(linftynorm, linftyproject!; whats_normalized=(x -> eachslice(x; dims=1)))
+
 """
 ProjectedNormalization(linftynorm, linftyproject!;
     whats_normalized=(x -> eachslice(x; dims=1))))
