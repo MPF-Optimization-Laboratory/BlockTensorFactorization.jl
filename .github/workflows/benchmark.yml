@@ -41,11 +41,9 @@ jobs:
       - name: Install dependencies
         run: |
           julia --project=benchmark -e '
-            using Pkg;
-            Pkg.add("BenchmarkTools");
-            Pkg.develop(PackageSpec(path=pwd()));
+            using Pkg
             Pkg.instantiate()'
-      - name: Run benchmark
+      - name: Run benchmark # import Pkg; Pkg.add("BenchmarkTools") # Pkg.develop(PackageSpec(path=pwd()))
         run: julia --project=benchmark benchmark/runbenchmarks.jl
       - name: Store benchmark result
         uses: benchmark-action/github-action-benchmark@v1
