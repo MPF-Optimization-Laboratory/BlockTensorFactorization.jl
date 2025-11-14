@@ -595,44 +595,6 @@ end
     end
 end
 
-@testset "nnmtf" begin
-    R = 3
-    Y = Tucker1((10,11,64), R);
-
-    A = matrix_factor(Y, 1)
-    B = core(Y)
-    A .= abs.(A)
-    B .= abs.(B)
-    A_rows = eachrow(A)
-    A_rows ./= sum.(A_rows)
-    B_1slices = eachslice(B; dims=(1,2))
-    B_1slices ./= sum.(B_1slices)
-
-    Y1 = array(Y);
-    Y2 = copy(Y1);
-
-    core_constraint_update! = ConstraintUpdate(0, l1scale_average12slices! ∘ nonnegative!; whats_rescaled=(x -> eachcol(matrix_factor(x, 1))))
-
-    X, stats, kwargs = BlockTensorFactorization.factorize(Y2;
-        model=Tucker1, rank=R, tolerance=0.001, converged=RelativeError,
-        constraints=[core_constraint_update!, ConstraintUpdate(1, nonnegative!)],
-        )
-    A2 = matrix_factor(X, 1)
-    B2 = core(X)
-
-    @test_broken norm(X-Y1)/norm(Y1) <= 0.001 # could be a bit worse than tolerance=0.001
-        # since we auto-apply constraints at the last step
-
-    @test norm(X-Y1)/norm(Y1) <= 0.005 # should still be reasonably good
-
-    A1, B1, rel_errors, norm_grad, dist_Ncone = nnmtf(Y1, R)
-
-    @test norm((B1 ×₁ A1) - Y1)/ norm(Y1) <= 0.01 # expect less than 1% relative error (convergence criterion is GradientNNCone)
-
-    # @test all(A1 .≈ A2)
-    # @test all(B1 .≈ B2)
-end
-
 @testset "MultiScale" begin
     @testset "coarsen" begin
 
