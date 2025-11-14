@@ -1,6 +1,7 @@
 using Documenter
 
-#push!(LOAD_PATH,"../src/")
+# push!(LOAD_PATH,"../")
+# push!(LOAD_PATH,"../src/")
 
 using BlockTensorFactorization
 
