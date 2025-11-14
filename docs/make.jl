@@ -28,6 +28,7 @@ makedocs(
             "reference/constants.md",
             "reference/types.md",
             "reference/functions.md",
+            "reference/index.md",
         ],
         "Deprecated" => [
             "deprecated/densityestimationtools.md",

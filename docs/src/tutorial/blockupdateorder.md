@@ -101,7 +101,8 @@ BlockedUpdate(
 
 Note all the previously mentioned options still keeps the various updates for each factor together. For full randomization, use the following code.
 ```julia
-X, stats, kwargs = factorize(Y; recursive_random_order=true, group_by_factor=false)
+X, stats, kwargs = factorize(Y;
+    recursive_random_order=true, group_by_factor=false)
 ```
 
 A possible order of updates could now be the following. Note that every update can appear anywhere in the order.
@@ -121,6 +122,7 @@ BlockedUpdate(
 ```
 
 The complete behaviour is summarized in the table below.
+
 | `group_by_factor` | `random_order` | `recursive_random_order` | Description                                                                 |
 |-------------------|----------------|--------------------------|-----------------------------------------------------------------------------|
 | `false`           | `false`        | `false`                  | In the order given                                                          |

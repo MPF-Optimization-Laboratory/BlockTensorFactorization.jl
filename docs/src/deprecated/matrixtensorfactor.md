@@ -5,13 +5,6 @@ Old interface from [MatrixTensorFactor](https://github.com/MPF-Optimization-Labo
 !!! warning
     This submodule is deprecated and may be removed in future versions. It is preferred to use `factorize` rather than [`nnmtf`](@ref).
 
-```@contents
-Depth = 2
-```
-
 ```@autodocs
 Modules = [BlockTensorFactorization.MatrixTensorFactor]
-```
-
-```@index
 ```

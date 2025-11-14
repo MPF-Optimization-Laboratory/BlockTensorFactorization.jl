@@ -1,12 +1,12 @@
 # Iteration Stats
 
-```docs
+```@docs; canonical=false
 AbstractStat
 ```
 
 The following stats are supported inputs to the `stats` keyword in factorize.
 
-```docs
+```@docs; canonical=false
 Iteration
 GradientNorm
 GradientNNCone
@@ -22,7 +22,7 @@ FactorNorms
 
 The following are subtype of `AbstractStat` but are for auxiliary features.
 
-```docs
+```@docs; canonical=false
 PrintStats
 DisplayDecomposition
 ```

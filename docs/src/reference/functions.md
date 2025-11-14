@@ -4,6 +4,3 @@
 Modules = [BlockTensorFactorization.Core]
 Order = [:function]
 ```
-
-```@index
-```

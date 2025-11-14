@@ -2,8 +2,5 @@
 
 ```@autodocs
 Modules = [BlockTensorFactorization.Core]
-Order = [:module, :constant]
-```
-
-```@index
+Order = [:constant]
 ```
