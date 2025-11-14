@@ -18,7 +18,11 @@ IterateRelativeDiff
 EuclidianStepSize
 EuclidianLipschitz
 FactorNorms
+PrintStats
+DisplayDecomposition
 ```
+
+## Detail
 
 ```@docs; canonical=false
 Iteration
@@ -34,6 +38,7 @@ EuclidianLipschitz
 FactorNorms
 ```
 
+## Auxiliary Stats
 The following are subtype of `AbstractStat` but are for auxiliary features.
 
 ```@docs; canonical=false

@@ -25,7 +25,6 @@ makedocs(
             "tutorial/iterationstats.md",
         ],
         "Reference" => [
-            "reference/constants.md",
             "reference/types.md",
             "reference/functions.md",
             "reference/index.md",
