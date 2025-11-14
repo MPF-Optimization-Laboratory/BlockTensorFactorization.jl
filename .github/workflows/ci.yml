@@ -12,16 +12,16 @@ jobs:
       fail-fast: false
       matrix:
         version:
-          - '1.9'
-          - 'lts'
-          - 'pre'
+          - '1' # Latest stable 1.x release
+          # - 'lts' # long-term support release
+          # - 'pre' # latest stable prerelease
         os:
           - ubuntu-latest
           - macOS-latest
           - windows-latest
-        exclude:
-          - version: '1.9'
-            os: macOS-latest
+        #exclude:
+        #  - version: '1'
+        #    os: macOS-latest
         build_is_production_build:
           - true
     steps:
