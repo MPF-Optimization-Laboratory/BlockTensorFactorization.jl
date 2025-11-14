@@ -5,6 +5,7 @@ Unit tests
 using Test
 
 using Random
+Random.seed!(3141592653589) # Reproducibility of random initializations
 using LinearAlgebra
 
 using BlockTensorFactorization
