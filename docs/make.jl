@@ -29,10 +29,6 @@ makedocs(
             "reference/functions.md",
             "reference/index.md",
         ],
-        "Deprecated" => [
-            "deprecated/densityestimationtools.md",
-            "deprecated/matrixtensorfactor.md",
-        ],
     ],
 )
 
