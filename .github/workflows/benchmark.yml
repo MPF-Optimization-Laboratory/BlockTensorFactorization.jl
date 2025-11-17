@@ -27,37 +27,44 @@ jobs:
         with:
           version: ${{ matrix.version }}
           arch: ${{ matrix.arch }}
-      - uses: actions/cache@v4
-        env:
-          cache-name: cache-artifacts
-        with:
-          path: ~/.julia/artifacts
-          key: runner.os−test−env.cache−name−{{ hashFiles('**/Project.toml') }}
-          restore-keys: |
-            runner.os−test−
-            ${{ env.cache-name }}-
-            ${{ runner.os }}-test-
-            ${{ runner.os }}-
       - name: Install dependencies
         run: |
           julia --project=benchmark -e '
-            using Pkg
+            using Pkg;
+            Pkg.add("BenchmarkTools");
+            Pkg.develop(PackageSpec(path=pwd()));
             Pkg.instantiate()'
       - name: Run benchmark # import Pkg; Pkg.add("BenchmarkTools") # Pkg.develop(PackageSpec(path=pwd()))
-        run: julia --project=benchmark benchmark/runbenchmarks.jl
+        run: julia --project=benchmark benchmark/runbenchmarks.jl | tee output.txt
+      - uses: actions/cache@v4
+        with:
+          path: ./cache
+          key: ${{ runner.os }}-benchmark
+        # env:
+        #   cache-name: cache-artifacts
+        # with:
+        #   path: ~/.julia/artifacts
+        #   key: runner.os−test−env.cache−name−{{ hashFiles('**/Project.toml') }}
+        #   restore-keys: |
+        #     runner.os−test−
+        #     ${{ env.cache-name }}-
+        #     ${{ runner.os }}-test-
+        #     ${{ runner.os }}-
       - name: Store benchmark result
         uses: benchmark-action/github-action-benchmark@v1
         with:
-          name: Julia benchmark result
+          # name: Julia benchmark result
           tool: 'julia'
-          output-file-path: output.json #benchmark/
+          output-file-path: output.txt #benchmark/
           # Use personal access token instead of GITHUB_TOKEN due to https://github.community/t/github-action-not-triggering-gh-pages-upon-push/16096
+          #external-data-json-path: ./cache/output.json
           github-token: ${{ secrets.GITHUB_TOKEN }}
           auto-push: true
           # Show alert with commit comment on detecting possible performance regression
           alert-threshold: '200%'
           comment-on-alert: true
           fail-on-alert: false
+          auto-push: true
           #alert-comment-cc-users: '@ktrz,@findmyway'
 
       # - name: Store benchmark result - separate results repo
