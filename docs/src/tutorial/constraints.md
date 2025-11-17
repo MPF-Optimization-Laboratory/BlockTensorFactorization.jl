@@ -70,7 +70,7 @@ linftynormalize_12slices!
 ```
 
 !!! warning "Warning"
-    Projection onto the unit norm ball from the origin is not unique at the origin so do not expect consistant behaviour with an all-zeros input.
+    Projection onto the unit norm ball from the origin is not unique at the origin so do not expect consistent behaviour with an all-zeros input.
 
 ### Scaling Constraints
 ```@docs; canonical=false
@@ -121,6 +121,22 @@ simplex!
 simplex_cols!
 simplex_1slices!
 simplex_12slices!
+```
+
+### List of built-in `ProjectedNormalization`s and `ScaledNormalization`s
+
+```@docs
+BUILT_IN_CONSTRAINTS
+```
+
+```@example
+println.(BUILT_IN_CONSTRAINTS);
+```
+
+### Linear Constraints
+
+```@docs; canonical=false
+LinearConstraint
 ```
 
 ## Advanced Constraints

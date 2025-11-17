@@ -434,6 +434,7 @@ binary! = Entrywise(binaryproject, x -> x in (0, 1)) # this is a 0, 1 tuple, not
 The constraint AX = B for a linear operator A and array B.
 
 When A is a matrix, this projects onto the subspace with the solution given by
+
 `X .-= A' * ( (A*A') \\ (A*X .- b) )`.
 """
 struct LinearConstraint{T <: Union{Function, AbstractArray}} <: AbstractConstraint
