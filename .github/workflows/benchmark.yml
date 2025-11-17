@@ -35,7 +35,7 @@ jobs:
             Pkg.develop(PackageSpec(path=pwd()));
             Pkg.instantiate()'
       - name: Run benchmark # import Pkg; Pkg.add("BenchmarkTools") # Pkg.develop(PackageSpec(path=pwd()))
-        run: julia --project=benchmark benchmark/runbenchmarks.jl | tee output.txt
+        run: julia --project=benchmark benchmark/runbenchmarks.jl
       - uses: actions/cache@v4
         with:
           path: ./cache
@@ -55,7 +55,7 @@ jobs:
         with:
           # name: Julia benchmark result
           tool: 'julia'
-          output-file-path: output.txt #benchmark/
+          output-file-path: output.json #benchmark/
           # Use personal access token instead of GITHUB_TOKEN due to https://github.community/t/github-action-not-triggering-gh-pages-upon-push/16096
           #external-data-json-path: ./cache/output.json
           github-token: ${{ secrets.GITHUB_TOKEN }}

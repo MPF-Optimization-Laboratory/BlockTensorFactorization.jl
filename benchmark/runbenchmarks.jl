@@ -31,6 +31,6 @@ suite["factorize"][1] = @benchmarkable my_factorize(Y)
 tune!(suite)
 results = run(suite, verbose = true)
 
-display(median(results))
+# display(median(results))
 
-#BenchmarkTools.save("output.json", median(results))
+BenchmarkTools.save("output.json", median(results))
