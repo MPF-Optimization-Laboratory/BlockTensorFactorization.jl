@@ -129,9 +129,53 @@ simplex_12slices!
 BUILT_IN_CONSTRAINTS
 ```
 
+```
+l1normalize!
+l1normalize_rows!
+l1normalize_cols!
+l1normalize_1slices!
+l1normalize_12slices!
+l2normalize!
+l2normalize_rows!
+l2normalize_cols!
+l2normalize_1slices!
+l2normalize_12slices!
+linftynormalize!
+linftynormalize_rows!
+linftynormalize_cols!
+linftynormalize_1slices!
+linftynormalize_12slices!
+simplex!
+simplex_rows!
+simplex_cols!
+simplex_1slices!
+simplex_12slices!
+l1scale!
+l1scale_rows!
+l1scale_cols!
+l1scale_1slices!
+l1scale_12slices!
+l1scale_average12slices!
+l2scale!
+l2scale_rows!
+l2scale_cols!
+l2scale_1slices!
+l2scale_12slices!
+l2scale_average12slices!
+linftyscale!
+linftyscale_rows!
+linftyscale_cols!
+linftyscale_1slices!
+linftyscale_12slices!
+linftyscale_average12slices!
+```
+
+<!--
 ```@example
+using BlockTensorFactorization # hide
 println.(BUILT_IN_CONSTRAINTS);
 ```
+-->
 
 ### Linear Constraints
 
