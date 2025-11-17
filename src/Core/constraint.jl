@@ -134,8 +134,8 @@ Scale can be a single `Real`, or an `AbstractArray{<:Real}`, but should be the s
 the output of `whats_normalized`.
 """
 struct ProjectedNormalization <: AbstractNormalization
-    norm::Function # input a AbstractArray -> output a Bool
-    projection::Function # input a AbstractArray -> mutate it so that `check` would return true
+    norm::Function # input a AbstractArray -> output a number
+    projection::Function # input a AbstractArray -> mutate it so that `check` norm(array) is 1
     whats_normalized::Function
 end
 
@@ -184,17 +184,6 @@ function l2project!(x::AbstractArray)
     x ./= l2norm(x)
 end
 
-"""ProjectedNormalization(l2norm, l2project!)"""
-l2normalize! = ProjectedNormalization(l2norm, l2project!)
-"""ProjectedNormalization(l2norm, l2project!; whats_normalized=eachrow)"""
-l2normalize_rows! = ProjectedNormalization(l2norm, l2project!; whats_normalized=eachrow)
-"""ProjectedNormalization(l2norm, l2project!; whats_normalized=eachcol)"""
-l2normalize_cols! = ProjectedNormalization(l2norm, l2project!; whats_normalized=eachcol)
-"""ProjectedNormalization(l2norm, l2project!; whats_normalized=(x -> eachslice(x; dims=1)))"""
-l2normalize_1slices! = ProjectedNormalization(l2norm, l2project!; whats_normalized=(x -> eachslice(x; dims=1)))
-"""ProjectedNormalization(l2norm, l2project!; whats_normalized=(x -> eachslice(x; dims=(1,2))))"""
-l2normalize_12slices! = ProjectedNormalization(l2norm, l2project!; whats_normalized=(x -> eachslice(x; dims=(1,2))))
-
 l1norm(x::AbstractArray) = mapreduce(abs, +, x)
 function l1project!(x::AbstractArray)
     if iszero(x)
@@ -207,36 +196,12 @@ function l1project!(x::AbstractArray)
     x .= signs .* projsplx(signs .* x)
 end
 
-# TODO in Julia, calling eachcol on matrices is cheaper than eachrow
-# If possible, factorize() should reframe the constraints to use eachcol
-# to speed up iterations
-
-# TODO make all these aliases programmatically
-
-"""ProjectedNormalization(l1norm, l1project!)"""
-l1normalize! = ProjectedNormalization(l1norm, l1project!)
-"""ProjectedNormalization(l1norm, l1project!; whats_normalized=eachrow)"""
-l1normalize_rows! = ProjectedNormalization(l1norm, l1project!; whats_normalized=eachrow)
-"""ProjectedNormalization(l1norm, l1project!; whats_normalized=eachcol)"""
-l1normalize_cols! = ProjectedNormalization(l1norm, l1project!; whats_normalized=eachcol)
-"""ProjectedNormalization(l1norm, l1project!; whats_normalized=(x -> eachslice(x; dims=1)))"""
-l1normalize_1slices! = ProjectedNormalization(l1norm, l1project!; whats_normalized=(x -> eachslice(x; dims=1)))
-"""ProjectedNormalization(l1norm, l1project!; whats_normalized=(x -> eachslice(x; dims=(1,2))))"""
-l1normalize_12slices! = ProjectedNormalization(l1norm, l1project!; whats_normalized=(x -> eachslice(x; dims=(1,2))))
-
+# TODO This constraint (used by simplex! and friends) is hacked
+# It only returns a Bool rather than a number, but simplex! checks
+# if the output of the "norm" function equals 1, which is converted
+# to a Boolean True. Is there some way to treat this constraint better?
 """all(isnonnegative, x) && sum(x) ≈ 1"""
 isnonnegative_sumtoone(x) = all(isnonnegative, x) && sum(x) ≈ 1
-
-"""ProjectedNormalization(isnonnegative_sumtoone, projsplx!)"""
-simplex! = ProjectedNormalization(isnonnegative_sumtoone, projsplx!)
-"""ProjectedNormalization(isnonnegative_sumtoone, projsplx!; whats_normalized=eachrow)"""
-simplex_rows! = ProjectedNormalization(isnonnegative_sumtoone, projsplx!; whats_normalized=eachrow)
-"""ProjectedNormalization(isnonnegative_sumtoone, projsplx!; whats_normalized=eachcol)"""
-simplex_cols! = ProjectedNormalization(isnonnegative_sumtoone, projsplx!; whats_normalized=eachcol)
-"""ProjectedNormalization(isnonnegative_sumtoone, projsplx!; whats_normalized=(x -> eachslice(x; dims=1)))"""
-simplex_1slices! = ProjectedNormalization(isnonnegative_sumtoone, projsplx!; whats_normalized=(x -> eachslice(x; dims=1)))
-"""ProjectedNormalization(isnonnegative_sumtoone, projsplx!; whats_normalized=(x -> eachslice(x; dims=(1,2))))"""
-simplex_12slices! = ProjectedNormalization(isnonnegative_sumtoone, projsplx!; whats_normalized=(x -> eachslice(x; dims=(1,2))))
 
 """
     linftynorm(x::AbstractArray)
@@ -273,24 +238,6 @@ function linftyproject!(x::AbstractArray)
     end
 end
 
-"""ProjectedNormalization(linftynorm, linftyproject!)"""
-linftynormalize! = ProjectedNormalization(linftynorm, linftyproject!)
-"""ProjectedNormalization(linftynorm, linftyproject!; whats_normalized=eachrow)"""
-linftynormalize_rows! = ProjectedNormalization(linftynorm, linftyproject!; whats_normalized=eachrow)
-"""ProjectedNormalization(linftynorm, linftyproject!; whats_normalized=eachcol)"""
-linftynormalize_cols! = ProjectedNormalization(linftynorm, linftyproject!; whats_normalized=eachcol)
-
-"""
-ProjectedNormalization(linftynorm, linftyproject!;
-    whats_normalized=(x -> eachslice(x; dims=1))))
-"""
-linftynormalize_1slices! = ProjectedNormalization(linftynorm, linftyproject!; whats_normalized=(x -> eachslice(x; dims=1)))
-"""
-ProjectedNormalization(linftynorm, linftyproject!;
-    whats_normalized=(x -> eachslice(x; dims=(1,2))))
-"""
-linftynormalize_12slices! = ProjectedNormalization(linftynorm, linftyproject!; whats_normalized=(x -> eachslice(x; dims=(1,2))))
-
 """
     ScaledNormalization(norm; whats_normalized=identity, scale=1)
 
@@ -326,63 +273,111 @@ end
 check(S::ScaledNormalization{<:Union{Real,AbstractArray{<:Real}}}, A::AbstractArray) = all((S.norm).(S.whats_normalized(A)) .≈ S.scale)
 check(S::ScaledNormalization{<:Function}, A::AbstractArray) = all((S.norm).(S.whats_normalized(A)) .≈ S.scale(A))
 
-### Some standard rescaling ###
+# TODO in Julia, calling eachcol on matrices is cheaper than eachrow
+# If possible, factorize() should reframe the constraints to use eachcol
+# to speed up iterations
 
-"""ScaledNormalization(l2norm)"""
-l2scale! = ScaledNormalization(l2norm)
-"""ScaledNormalization(l2norm; whats_normalized=eachrow)"""
-l2scale_rows! = ScaledNormalization(l2norm; whats_normalized=eachrow)
-"""ScaledNormalization(l2norm; whats_normalized=eachcol)"""
-l2scale_cols! = ScaledNormalization(l2norm; whats_normalized=eachcol)
-"""ScaledNormalization(l2norm; whats_normalized=(x -> eachslice(x; dims=1)))"""
-l2scale_1slices! = ScaledNormalization(l2norm; whats_normalized=(x -> eachslice(x; dims=1)))
-"""ScaledNormalization(l2norm; whats_normalized=(x -> eachslice(x; dims=(1,2))))"""
-l2scale_12slices! = ScaledNormalization(l2norm; whats_normalized=(x -> eachslice(x; dims=(1,2))))
+###################################################
+# Programmatically generated built-in constraints #
+###################################################
 
-"""ScaledNormalization(l1norm)"""
-l1scale! = ScaledNormalization(l1norm)
-"""ScaledNormalization(l1norm; whats_normalized=eachrow)"""
-l1scale_rows! = ScaledNormalization(l1norm; whats_normalized=eachrow)
-"""ScaledNormalization(l1norm; whats_normalized=eachcol)"""
-l1scale_cols! = ScaledNormalization(l1norm; whats_normalized=eachcol)
-"""ScaledNormalization(l1norm; whats_normalized=(x -> eachslice(x; dims=1)))"""
-l1scale_1slices! = ScaledNormalization(l1norm; whats_normalized=(x -> eachslice(x; dims=1)))
-"""ScaledNormalization(l1norm; whats_normalized=(x -> eachslice(x; dims=(1,2))))"""
-l1scale_12slices! = ScaledNormalization(l1norm; whats_normalized=(x -> eachslice(x; dims=(1,2))))
+# Helpers
 
-"""ScaledNormalization(linftynorm)"""
-linftyscale! = ScaledNormalization(linftynorm)
-"""ScaledNormalization(linftynorm; whats_normalized=eachrow)"""
-linftyscale_rows! = ScaledNormalization(linftynorm; whats_normalized=eachrow)
-"""ScaledNormalization(linftynorm; whats_normalized=eachcol)"""
-linftyscale_cols! = ScaledNormalization(linftynorm; whats_normalized=eachcol)
-"""ScaledNormalization(linftynorm; whats_normalized=(x -> eachslice(x; dims=1)))"""
-linftyscale_1slices! = ScaledNormalization(linftynorm; whats_normalized=(x -> eachslice(x; dims=1)))
-"""ScaledNormalization(linftynorm; whats_normalized=(x -> eachslice(x; dims=(1,2))))"""
-linftyscale_12slices! = ScaledNormalization(linftynorm; whats_normalized=(x -> eachslice(x; dims=(1,2))))
+each1slice(x) = eachslice(x; dims=1)
+each12slice(x) = eachslice(x; dims=(1,2))
+size2(A) = size(A, 2)
+namedtuple_to_string(nt) = join(("$(k)=$(v)" for (k, v) in pairs(nt)), ", ")
 
-"""ScaledNormalization(l1norm;
-    whats_normalized=(x -> eachslice(x; dims=1)),
-    scale=(A -> size(A, 2)))"""
-l1scale_average12slices! = ScaledNormalization(l1norm;
-    whats_normalized=(x -> eachslice(x; dims=1)),
-    scale=(A -> size(A, 2))) # the length of the second dimension "J"
-"""ScaledNormalization(l2norm;
-    whats_normalized=(x -> eachslice(x; dims=1)),
-    scale=(A -> size(A, 2)))"""
-l2scale_average12slices! = ScaledNormalization(l2norm;
-    whats_normalized=(x -> eachslice(x; dims=1)),
-    scale=(A -> size(A, 2)))
-"""ScaledNormalization(linftynorm;
-    whats_normalized=(x -> eachslice(x; dims=1)),
-    scale=(A -> size(A, 2)))"""
-linftyscale_average12slices! = ScaledNormalization(linftynorm;
-    whats_normalized=(x -> eachslice(x; dims=1)),
-    scale=(A -> size(A, 2)))
+constraint_to_norm = Dict([
+    "1" => l1norm,
+    "2" => l2norm,
+    "infty" => linftynorm,
+    "simplex" => isnonnegative_sumtoone,
+])
 
-# Convert between ScaledNormalization and ProjectedNormalization
+constraint_to_project = Dict([
+    "1" => l1project!,
+    "2" => l2project!,
+    "infty" => linftyproject!,
+    "simplex" => projsplx!,
+])
+
+# Constraints for the following combinations
+
+constraint_set = ("1", "2", "infty", "simplex")
+
+constraint_types = [
+    "scale" => ((c, kwargs) -> ScaledNormalization(constraint_to_norm[c]; kwargs...)),
+    "normalize" => ((c, kwargs) -> ProjectedNormalization(constraint_to_norm[c], constraint_to_project[c]; kwargs...)),
+]
+
+normalizations_to_whats_normalized = [
+    "!" => (whats_normalized = identityslice,),
+    "_rows!" => (whats_normalized = eachrow,),
+    "_cols!" => (whats_normalized = eachcol,),
+    "_1slices!" => (whats_normalized = each1slice,),
+    "_12slices!" => (whats_normalized = each12slice,),
+    "_average12slices!" => (whats_normalized = each1slice, scale=size2,),
+]
+
+# Generate the constraints
+
+"""List of symbols of the built-in constraint functions."""
+const BUILT_IN_CONSTRAINTS = Symbol[] # const means constant type, not an unmutable
+
+for (type, pattern) in constraint_types
+    for c in constraint_set
+        for (suffix, whats_normalized) in normalizations_to_whats_normalized
+            # skip these cases
+            if suffix == "_average12slices!" && type == "normalize"
+                continue
+            elseif c == "simplex" && type == "scale"
+                continue
+            end
+
+            function_name = c == "simplex" ? "simplex$(suffix)" : "l$(c)$(type)$(suffix)"
+            function_name = Symbol(function_name)
+
+            supertype = type == "normalize" ? "ProjectedNormalization" : "ScaledNormalization"
+
+            definition = type == "normalize" ?
+                "$(supertype)($(constraint_to_norm[c]), $(constraint_to_project[c]); $(namedtuple_to_string(whats_normalized)))" :
+                "$(supertype)($(constraint_to_norm[c]); $(namedtuple_to_string(whats_normalized)))"
+            docstring =
+"""
+    $(function_name) <: $(supertype)
+
+Alias for
+
+`$(definition)`.
+
+See [`$(supertype)`](@ref).
+"""
+            eval(quote
+                const $function_name = $pattern($c, $whats_normalized)
+                @doc $docstring $function_name
+            end)
+            push!(BUILT_IN_CONSTRAINTS, function_name)
+        end
+    end
+end
+
+# End of built-in constraints
+
+"""
+    ScaledNormalization(P::ProjectedNormalization)
+
+Convert from a [`ProjectedNormalization`](@ref) to a [`ScaledNormalization`](@ref).
+"""
 ScaledNormalization(P::ProjectedNormalization) = ScaledNormalization(P.norm; whats_normalized=P.whats_normalized)
 
+"""
+    ProjectedNormalization(S::ScaledNormalization{T}) where {T <: Real}
+
+Convert from a [`ScaledNormalization`](@ref) to a [`ProjectedNormalization`](@ref).
+
+Only works when the scale is 1.
+"""
 function ProjectedNormalization(S::ScaledNormalization{T}) where {T <: Real}
     S.scale == 1 || throw(ArgumentError("Only a ScaledNormalization with scale 1 can be converted to a ProjectedNormalization; got $(S.scale)"))
     ProjectedNormalization(S.norm, makeprojection(S.norm), S.whats_normalized)
@@ -422,7 +417,7 @@ function binaryproject(x)
 end
 
 """Entrywise(binaryproject, x -> x in (0, 1))"""
-binary! = Entrywise(binaryproject, x -> x in (0, 1)) # this is a 0, 1 tuple, not an open intervel
+binary! = Entrywise(binaryproject, x -> x in (0, 1)) # this is a 0, 1 tuple, not an open interval
 
 """
     LinearConstraint(A::T, B::AbstractArray) where {T <: Union{Function, AbstractArray}}

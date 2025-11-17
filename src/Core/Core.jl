@@ -61,6 +61,8 @@ export l1scale!, l1scale_rows!, l1scale_cols!, l1scale_1slices!, l1scale_12slice
 export linftyscale!, linftyscale_rows!, linftyscale_cols!, linftyscale_1slices!, linftyscale_12slices!
 export l1scale_average12slices!, l2scale_average12slices!, linftyscale_average12slices!
 
+export BUILT_IN_CONSTRAINTS
+
 export Entrywise, IntervalConstraint
 export nonnegative!, binary!, binaryproject
 export l1norm, l2norm, linftynorm
