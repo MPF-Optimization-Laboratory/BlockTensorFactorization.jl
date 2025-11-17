@@ -384,13 +384,22 @@ function ProjectedNormalization(S::ScaledNormalization{T}) where {T <: Real}
 end
 
 
-"""Entrywise constraint. Note both apply and check needs to be performed entrywise on an array"""
+"""
+    Entrywise <: AbstractConstraint
+    Entrywise(apply::Function, check::Function)
+
+Entry-wise constraint. Both apply and check need are performed entry-wise on an array.
+"""
 struct Entrywise <: AbstractConstraint
     apply::Function
     check::Function
 end
 
-"""Make entrywise callable, by applying the constraint entrywise to arrays"""
+"""
+    (C::Entrywise)(A::AbstractArray)
+
+Applies `C.apply` to `A` entry-wise. Mutates `A`.
+"""
 function (C::Entrywise)(A::AbstractArray)
     A .= (C.apply).(A)
 end
@@ -398,7 +407,7 @@ end
 """
     check(C::Entrywise, A::AbstractArray)::Bool
 
-Checks if `A` is entrywise constrained
+Checks if `A` is entry-wise constrained.
 """
 check(C::Entrywise, A::AbstractArray) = all((C.check).(A))
 
@@ -425,7 +434,7 @@ binary! = Entrywise(binaryproject, x -> x in (0, 1)) # this is a 0, 1 tuple, not
 The constraint AX = B for a linear operator A and array B.
 
 When A is a matrix, this projects onto the subspace with the solution given by
-`X .-= A' * ( (A*A') \\ (A*X .- b) )`
+`X .-= A' * ( (A*A') \\ (A*X .- b) )`.
 """
 struct LinearConstraint{T <: Union{Function, AbstractArray}} <: AbstractConstraint
     linear_operator::T
