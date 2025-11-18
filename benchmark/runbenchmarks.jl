@@ -7,6 +7,7 @@ using BenchmarkTools
 
 using BlockTensorFactorization
 
+Random.seed!(3141592653589)
 
 suite = BenchmarkGroup()
 
