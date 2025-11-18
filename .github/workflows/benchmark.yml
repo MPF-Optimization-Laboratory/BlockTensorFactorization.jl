@@ -31,7 +31,7 @@ jobs:
         run: |
           julia --project=benchmark -e '
             import Pkg;
-            Pkg.develop(PackageSpec(path=pwd()));
+            Pkg.develop(Pkg.PackageSpec(path=pwd()));
             Pkg.instantiate()'
       - name: Run benchmark # import Pkg; Pkg.add("BenchmarkTools") # Pkg.develop(PackageSpec(path=pwd()))
           # julia --project=benchmark -e '

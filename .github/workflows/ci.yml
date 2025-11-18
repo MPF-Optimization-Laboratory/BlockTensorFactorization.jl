@@ -95,7 +95,7 @@ jobs:
       - run: |
           julia --project=docs -e '
             import Pkg;
-            Pkg.develop(PackageSpec(path=pwd()))
+            Pkg.develop(Pkg.PackageSpec(path=pwd()))
             Pkg.instantiate()'
       - run: julia --project=docs docs/make.jl #Pkg.add("Documenter"); using Pkg
         env:
