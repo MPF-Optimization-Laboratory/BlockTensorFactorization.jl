@@ -114,6 +114,7 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           DOCUMENTER_KEY: ${{ secrets.DOCUMENTER_KEY }}
   benchmark:
+    needs: docs # ensures this is run after docs. docs replaces gh-pages branch so this needs to happen after
     name: Run Julia benchmark
     runs-on: ${{ matrix.os }}
     strategy:
