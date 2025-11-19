@@ -24,6 +24,7 @@ makedocs(
             "tutorial/constraints.md",
             "tutorial/blockupdateorder.md",
             "tutorial/iterationstats.md",
+            "tutorial/multiscale.md"
         ],
         "Reference" => [
             "reference/types.md",

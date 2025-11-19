@@ -137,9 +137,16 @@ end
 """
     multiscale_factorize(Y; continuous_dims=1:ndims(Y), rank=1, model=Tucker1, kwargs...)
 
-Like [`factorize`](@ref) but uses progressively finer sub-grids of `Y` to speed up convergence. This is only effective when the dimensions given by `dims` come from discretizations of continuous data.
+Like [`factorize`](@ref) but uses progressively finer sub-grids of `Y` to speed up
+convergence. This is only effective when the dimensions given by `dims` come from
+discretizations of continuous data.
 
-For example, if `Y` has 3 dimensions where `Y[i, j, k]` are samples from a continuous 2D function f_i(x_j, y_k) on a grid, use `multiscale_factorize(Y; continuous_dims=(2,3))` since second and third dimensions are continuous.
+For example, if `Y` has 3 dimensions where `Y[i, j, k]` are samples from a continuous
+2D function f_i(x_j, y_k) on a grid, use
+
+`multiscale_factorize(Y; continuous_dims=(2,3))`
+
+since second and third dimensions are continuous.
 """
 function multiscale_factorize(Y; kwargs...)
     continuous_dims, kwargs = initialize_continuous_dims(Y; kwargs...)

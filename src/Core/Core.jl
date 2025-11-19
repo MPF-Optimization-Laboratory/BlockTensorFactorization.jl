@@ -97,7 +97,7 @@ export factorize
 
 include("./multiscale.jl")
 export multiscale_factorize
-export coarsen, interpolate, linear_smooth, scale_constraint
+export coarsen, interpolate, scale_constraint
 
 include("./rankdetection.jl")
 export rank_detect_factorize
