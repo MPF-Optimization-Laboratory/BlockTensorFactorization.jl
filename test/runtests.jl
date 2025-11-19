@@ -520,7 +520,7 @@ end
         @test kwargs == true_kwargs
     end
 
-    @testset "Factorization" begin
+    @testset "FactorizationSetup" begin
         G = Tucker1((10,11,12), 5);
         Y = Tucker1((10,11,12), 5);
         Y = array(Y);
@@ -577,14 +577,16 @@ end
         Y = CPDecomposition((10,11,12), 3)
         Y = array(Y)
         decomposition, stats_data = fact(Y; model=CPDecomposition, rank=3, maxiter=2, do_subblock_updates=true)
+    end
 
+    @testset "ModelFactorization" begin
         # Regular run of Tucker1
         C = abs_randn(5, 11, 12)
         A = abs_randn(10, 5)
         Y = Tucker1((C, A))
         Y = array(Y)
 
-        decomposition, stats_data = fact(Y;
+        decomposition, stats, kwargs = fact(Y;
             rank=5,
             tolerance=(2, 0.05),
             converged=(GradientNNCone, RelativeError),
@@ -593,6 +595,57 @@ end
             stats=[Iteration, ObjectiveValue, GradientNNCone, RelativeError]
         );
 
+        @test stats[end, :iteration] < 1000 # ensure we did not hit the maximum number of iterations
+
+        # Semi-interesting run of CPDecomposition
+        N = 100
+        R = 5
+        D = 2
+
+        matrices = [abs_randn(N, R) for _ in 1:D]
+        l1scale_cols!.(matrices)
+        Ydecomp = CPDecomposition(Tuple(matrices))#abs_randn
+        @assert all(check.(l1scale_cols!, factors(Ydecomp)))
+        Y = array(Ydecomp)
+
+        options = (
+            tolerance=.01,
+            maxiter=1000,
+            converged=RelativeError,
+            constraints=[l1scale_cols! ∘ nonnegative!, simplex_cols!],
+            constrain_init=true,
+            constrain_output=true,
+            momentum=true,
+            final_constraints = l1scale_cols!,
+            stats=[
+                Iteration, ObjectiveValue, GradientNNCone, RelativeError, FactorNorms, EuclidianLipschitz
+            ],
+        )
+
+        decomposition_randn, stats, kwargs = fact(Y; model=CPDecomposition, options...);
+
+        @test stats[end, :iteration] < 1000 # ensure we did not hit the maximum number of iterations
+
+        # Regular run of Tucker
+        G = abs_randn(2,3,4)
+        A = abs_randn(10, 2)
+        B = abs_randn(10, 3)
+        C = abs_randn(10, 4)
+        Y = Tucker((G, A, B, C))
+        Y = array(Y)
+
+        decomposition, stats, kwargs = fact(Y;
+            rank=(2,3,4),
+            model=Tucker,
+            momentum=true,
+            tolerance=(1, 0.045),
+            converged=(GradientNNCone, RelativeError),
+            constrain_init=true,
+            constraints=nonnegative!,
+            stats=[Iteration, ObjectiveValue, GradientNNCone, RelativeError, EuclidianLipschitz, EuclidianStepSize]
+        );
+
+        @test stats[end, :iteration] < 1000 # ensure we did not hit the maximum number of iterations
     end
 end
 
