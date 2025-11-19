@@ -1,7 +1,19 @@
 name: CI
 on:
-  - push
-  - pull_request
+  push: # see https://github.com/orgs/community/discussions/26276#discussioncomment-4617932
+    branches:
+      - main
+    paths-ignore:
+    - README.md
+    - .gitignore
+    - LICENSE.md
+  pull_request:
+    branches:
+      - main
+    paths-ignore:
+    - README.md
+    - .gitignore
+    - LICENSE.md
 env:
   JULIA_NUM_THREADS: 2
 jobs:
@@ -101,3 +113,79 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           DOCUMENTER_KEY: ${{ secrets.DOCUMENTER_KEY }}
+  benchmark:
+    name: Run Julia benchmark
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        version:
+          - '1.12'
+        os:
+          - ubuntu-latest
+        arch:
+          - x64
+    steps:
+      - uses: actions/checkout@v4
+      - uses: julia-actions/setup-julia@v1
+        with:
+          version: ${{ matrix.version }}
+          arch: ${{ matrix.arch }}
+      - name: Install dependencies
+        run: |
+          julia --project=benchmark -e '
+            import Pkg;
+            Pkg.develop(Pkg.PackageSpec(path=pwd()));
+            Pkg.instantiate()'
+      - name: Run benchmark # import Pkg; Pkg.add("BenchmarkTools") # Pkg.develop(PackageSpec(path=pwd()))
+          # julia --project=benchmark -e '
+            # using Pkg;
+            # Pkg.add("BenchmarkTools");
+            # Pkg.develop(PackageSpec(path=pwd()));
+            # Pkg.instantiate()'
+        run: julia --project=benchmark benchmark/runbenchmarks.jl
+      - uses: actions/cache@v4
+        with:
+          path: ./cache
+          key: ${{ runner.os }}-benchmark
+        # env:
+        #   cache-name: cache-artifacts
+        # with:
+        #   path: ~/.julia/artifacts
+        #   key: runner.os−test−env.cache−name−{{ hashFiles('**/Project.toml') }}
+        #   restore-keys: |
+        #     runner.os−test−
+        #     ${{ env.cache-name }}-
+        #     ${{ runner.os }}-test-
+        #     ${{ runner.os }}-
+      - name: Store benchmark result
+        uses: benchmark-action/github-action-benchmark@v1
+        with:
+          # name: Julia benchmark result
+          tool: 'julia'
+          output-file-path: output.json #benchmark/
+          # Use personal access token instead of GITHUB_TOKEN due to https://github.community/t/github-action-not-triggering-gh-pages-upon-push/16096
+          #external-data-json-path: ./cache/output.json
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          auto-push: true
+          # Show alert with commit comment on detecting possible performance regression
+          alert-threshold: '200%'
+          comment-on-alert: true
+          fail-on-alert: false
+          #alert-comment-cc-users: '@ktrz,@findmyway'
+
+      # - name: Store benchmark result - separate results repo
+      #   uses: benchmark-action/github-action-benchmark@v1
+      #   with:
+      #     name: Julia benchmark result
+      #     tool: 'julia'
+      #     output-file-path: benchmark/output.json
+      #     # Use personal access token instead of GITHUB_TOKEN due to https://github.community/t/github-action-not-triggering-gh-pages-upon-push/16096
+      #     github-token: ${{ secrets.BENCHMARK_ACTION_BOT_TOKEN }}
+      #     auto-push: true
+      #     # Show alert with commit comment on detecting possible performance regression
+      #     alert-threshold: '200%'
+      #     comment-on-alert: true
+      #     fail-on-alert: false
+      #     #alert-comment-cc-users: '@ktrz,@findmyway'
+      #     gh-repository: 'github.com/benchmark-action/github-action-benchmark-results'
