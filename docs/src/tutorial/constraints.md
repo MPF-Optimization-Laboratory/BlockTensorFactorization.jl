@@ -170,13 +170,6 @@ linftyscale_12slices!
 linftyscale_average12slices!
 ```
 
-<!--
-```@example
-using BlockTensorFactorization # hide
-println.(BUILT_IN_CONSTRAINTS);
-```
--->
-
 ### Linear Constraints
 
 ```@docs; canonical=false
