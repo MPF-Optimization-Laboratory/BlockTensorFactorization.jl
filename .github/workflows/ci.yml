@@ -98,65 +98,65 @@ jobs:
           #file: lcov.info
           token: ${{ secrets.CODECOV_TOKEN }}
           fail_ci_if_error: false  # or true if you want CI to fail when Codecov fails
-  benchmark:
-    #needs: docs # ensures this is run after docs. docs replaces gh-pages branch so this needs to happen after
-    name: Run Julia benchmark
-    runs-on: ${{ matrix.os }}
-    strategy:
-      fail-fast: false
-      matrix:
-        version:
-          - '1.12'
-        os:
-          - ubuntu-latest
-        arch:
-          - x64
-    steps:
-      - uses: actions/checkout@v4
-      - uses: julia-actions/setup-julia@v1
-        with:
-          version: ${{ matrix.version }}
-          arch: ${{ matrix.arch }}
-      - name: Install dependencies
-        run: |
-          julia --project=benchmark -e '
-            import Pkg;
-            Pkg.develop(Pkg.PackageSpec(path=pwd()));
-            Pkg.instantiate()'
-      - name: Run benchmark
-        run: julia --project=benchmark benchmark/runbenchmarks.jl
-      - uses: actions/cache@v4
-        with:
-          path: ./cache
-          key: ${{ runner.os }}-benchmark
-        # env:
-        #   cache-name: cache-artifacts
-        # with:
-        #   path: ~/.julia/artifacts
-        #   key: runner.os−test−env.cache−name−{{ hashFiles('**/Project.toml') }}
-        #   restore-keys: |
-        #     runner.os−test−
-        #     ${{ env.cache-name }}-
-        #     ${{ runner.os }}-test-
-        #     ${{ runner.os }}-
-      - name: Store benchmark result
-        uses: benchmark-action/github-action-benchmark@v1
-        with:
-          # name: Julia benchmark result
-          tool: 'julia'
-          output-file-path: output.json #benchmark/
-          # Use personal access token instead of GITHUB_TOKEN due to https://github.community/t/github-action-not-triggering-gh-pages-upon-push/16096
-          #external-data-json-path: ./cache/output.json
-          github-token: ${{ secrets.GITHUB_TOKEN }}
-          auto-push: true
-          # Show alert with commit comment on detecting possible performance regression
-          alert-threshold: '200%'
-          comment-on-alert: true
-          fail-on-alert: false
-          gh-pages-branch: main # put in to main so that documenter can build with the data
-          benchmark-data-dir-path: docs/src/bench
+  # benchmark:
+  #   #needs: docs # ensures this is run after docs. docs replaces gh-pages branch so this needs to happen after
+  #   name: Run Julia benchmark
+  #   runs-on: ${{ matrix.os }}
+  #   strategy:
+  #     fail-fast: false
+  #     matrix:
+  #       version:
+  #         - '1.12'
+  #       os:
+  #         - ubuntu-latest
+  #       arch:
+  #         - x64
+  #   steps:
+  #     - uses: actions/checkout@v4
+  #     - uses: julia-actions/setup-julia@v1
+  #       with:
+  #         version: ${{ matrix.version }}
+  #         arch: ${{ matrix.arch }}
+  #     - name: Install dependencies
+  #       run: |
+  #         julia --project=benchmark -e '
+  #           import Pkg;
+  #           Pkg.develop(Pkg.PackageSpec(path=pwd()));
+  #           Pkg.instantiate()'
+  #     - name: Run benchmark
+  #       run: julia --project=benchmark benchmark/runbenchmarks.jl
+  #     - uses: actions/cache@v4
+  #       with:
+  #         path: ./cache
+  #         key: ${{ runner.os }}-benchmark
+  #       # env:
+  #       #   cache-name: cache-artifacts
+  #       # with:
+  #       #   path: ~/.julia/artifacts
+  #       #   key: runner.os−test−env.cache−name−{{ hashFiles('**/Project.toml') }}
+  #       #   restore-keys: |
+  #       #     runner.os−test−
+  #       #     ${{ env.cache-name }}-
+  #       #     ${{ runner.os }}-test-
+  #       #     ${{ runner.os }}-
+  #     - name: Store benchmark result
+  #       uses: benchmark-action/github-action-benchmark@v1
+  #       with:
+  #         # name: Julia benchmark result
+  #         tool: 'julia'
+  #         output-file-path: output.json #benchmark/
+  #         # Use personal access token instead of GITHUB_TOKEN due to https://github.community/t/github-action-not-triggering-gh-pages-upon-push/16096
+  #         #external-data-json-path: ./cache/output.json
+  #         github-token: ${{ secrets.GITHUB_TOKEN }}
+  #         auto-push: true
+  #         # Show alert with commit comment on detecting possible performance regression
+  #         alert-threshold: '200%'
+  #         comment-on-alert: true
+  #         fail-on-alert: false
+  #         gh-pages-branch: main # put in to main so that documenter can build with the data
+  #         benchmark-data-dir-path: docs/src/bench
   docs:
-    needs: benchmark # So it can build the page with the results
+    #needs: benchmark # So it can build the page with the results
     name: Documentation
     runs-on: ubuntu-latest
     steps:
