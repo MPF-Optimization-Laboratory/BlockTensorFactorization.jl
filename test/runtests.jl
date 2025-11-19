@@ -468,7 +468,7 @@ end
             constrain_output=true,
             final_constraints = l1scale_cols!,
             stats=[
-                Iteration, ObjectiveValue, GradientNNCone, RelativeError, FactorNorms, EuclidianLipschitz
+                Iteration, ObjectiveValue, GradientNNCone, RelativeError, FactorNorms, EuclideanLipschitz
             ],
         )
 
@@ -498,7 +498,7 @@ end
         # Test all these keywords match
         true_kwargs = Dict{Symbol, Any}(
             :converged => RelativeError,
-            :stats => Type[Iteration, ObjectiveValue, GradientNNCone, RelativeError, FactorNorms, EuclidianLipschitz],
+            :stats => Type[Iteration, ObjectiveValue, GradientNNCone, RelativeError, FactorNorms, EuclideanLipschitz],
             :recursive_random_order => false,
             :maxiter => 1000,
             :norm => l2norm,
@@ -618,7 +618,7 @@ end
             momentum=true,
             final_constraints = l1scale_cols!,
             stats=[
-                Iteration, ObjectiveValue, GradientNNCone, RelativeError, FactorNorms, EuclidianLipschitz
+                Iteration, ObjectiveValue, GradientNNCone, RelativeError, FactorNorms, EuclideanLipschitz
             ],
         )
 
@@ -642,7 +642,7 @@ end
             converged=(GradientNNCone, RelativeError),
             constrain_init=true,
             constraints=nonnegative!,
-            stats=[Iteration, ObjectiveValue, GradientNNCone, RelativeError, EuclidianLipschitz, EuclidianStepSize]
+            stats=[Iteration, ObjectiveValue, GradientNNCone, RelativeError, EuclideanLipschitz, EuclideanStepSize]
         );
 
         @test stats[end, :iteration] < 1000 # ensure we did not hit the maximum number of iterations

@@ -15,8 +15,8 @@ ObjectiveRatio
 RelativeError
 IterateNormDiff
 IterateRelativeDiff
-EuclidianStepSize
-EuclidianLipschitz
+EuclideanStepSize
+EuclideanLipschitz
 FactorNorms
 PrintStats
 DisplayDecomposition
@@ -33,8 +33,8 @@ ObjectiveRatio
 RelativeError
 IterateNormDiff
 IterateRelativeDiff
-EuclidianStepSize
-EuclidianLipschitz
+EuclideanStepSize
+EuclideanLipschitz
 FactorNorms
 ```
 

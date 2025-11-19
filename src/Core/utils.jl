@@ -151,7 +151,7 @@ false_tuple(n::Integer) = Tuple(fill(false, n))
 """
     projsplx!(y; sum=one(eltype(y)))
 
-Projects (in Euclidian distance) the array y into the simplex.
+Projects (in Euclidean distance) the array y into the simplex.
 
 See `projsplx` for a non-mutating version.
 

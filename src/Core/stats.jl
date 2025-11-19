@@ -133,30 +133,30 @@ The 2-norm of the stepsizes that would be taken for all blocks.
 For example, if there are two blocks, and we would take a stepsize of A to update one block
 and B to update the other, this would return sqrt(A^2 + B^2).
 """
-struct EuclidianStepSize{T} <: AbstractStat
+struct EuclideanStepSize{T} <: AbstractStat
     steps::T
-    function EuclidianStepSize{T}(steps) where T
+    function EuclideanStepSize{T}(steps) where T
         @assert all(x -> typeof(x) <: AbstractStep, steps)
         new{T}(steps)
     end
 end
 
-EuclidianStepSize(; steps, kwargs...) = EuclidianStepSize{typeof(steps)}(steps)
+EuclideanStepSize(; steps, kwargs...) = EuclideanStepSize{typeof(steps)}(steps)
 
 """
 The 2-norm of the lipschitz constants that would be taken for all blocks.
 
-Need the stepsizes to be lipschitz steps since it is calculated similarly to EuclidianStepSize.
+Need the stepsizes to be lipschitz steps since it is calculated similarly to EuclideanStepSize.
 """
-struct EuclidianLipschitz{T} <: AbstractStat
+struct EuclideanLipschitz{T} <: AbstractStat
     steps::T
-    function EuclidianLipschitz{T}(steps) where T
+    function EuclideanLipschitz{T}(steps) where T
         @assert all(x -> typeof(x) <: AbstractStep, steps)
         new{T}(steps)
     end
 end
 
-EuclidianLipschitz(; steps, kwargs...) = EuclidianLipschitz{typeof(steps)}(steps)
+EuclideanLipschitz(; steps, kwargs...) = EuclideanLipschitz{typeof(steps)}(steps)
 
 """
     FactorNorms(; norm, kwargs...)
@@ -189,8 +189,8 @@ end
 
 (S::IterateNormDiff)(X, _, previous, _, _) = S.norm(X - previous[begin])
 (S::IterateRelativeDiff)(X, _, previous, _, _) = S.norm(X - previous[begin]) / S.norm(previous[begin])
-(S::EuclidianStepSize)(X, _, _, _, _) = sqrt.(sum(calcstep -> calcstep(X)^2, S.steps))
-(S::EuclidianLipschitz)(X, _, _, _, _) = sqrt.(sum(calcstep -> calcstep(X)^(-2), S.steps))
+(S::EuclideanStepSize)(X, _, _, _, _) = sqrt.(sum(calcstep -> calcstep(X)^2, S.steps))
+(S::EuclideanLipschitz)(X, _, _, _, _) = sqrt.(sum(calcstep -> calcstep(X)^(-2), S.steps))
 (S::FactorNorms)(X, _, _, _, _) = S.norm.(factors(X))
 (S::PrintStats)(_, _, _, parameters, stats) = if parameters[:iteration] > 0; println(last(stats)); end
 function (S::DisplayDecomposition)(X, _, _, parameters, _)

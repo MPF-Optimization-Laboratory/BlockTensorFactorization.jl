@@ -28,7 +28,7 @@ options = (
     momentum=true,
     final_constraints = l1scale_cols!,
     stats=[
-        Iteration, ObjectiveValue, GradientNNCone, RelativeError, FactorNorms, EuclidianLipschitz
+        Iteration, ObjectiveValue, GradientNNCone, RelativeError, FactorNorms, EuclideanLipschitz
     ],
 )
 

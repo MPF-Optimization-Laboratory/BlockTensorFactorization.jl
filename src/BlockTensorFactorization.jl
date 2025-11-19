@@ -62,7 +62,7 @@ export LinearConstraint
 
 #include("./stats.jl")
 export AbstractStat
-export DisplayDecomposition, EuclidianLipschitz, EuclidianStepSize, FactorNorms, GradientNorm, GradientNNCone
+export DisplayDecomposition, EuclideanLipschitz, EuclideanStepSize, FactorNorms, GradientNorm, GradientNNCone
 export IterateNormDiff, IterateRelativeDiff, Iteration, ObjectiveValue, ObjectiveRatio, PrintStats, RelativeError
 
 #include("./blockupdates.jl")
