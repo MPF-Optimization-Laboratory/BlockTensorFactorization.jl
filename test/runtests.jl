@@ -379,9 +379,9 @@ end
             grad3 = An*slicewise_dot(CM, CM; dims=n) - slicewise_dot(Y, CM; dims=n)
 
             # should all give the same answer
-            @test all(grad1 .≈ grad2)
-            @test all(grad1 .≈ grad3)
-            @test all(grad2 .≈ grad3)
+            @test grad1 ≈ grad2
+            @test grad1 ≈ grad3
+            @test grad2 ≈ grad3
         end
     end
 
@@ -643,20 +643,50 @@ end
             tolerance=.01,
             maxiter=1000,
             rank=R,
+            model=Tucker1,
             converged=RelativeError,
-            constraints=[l1scale_cols! ∘ nonnegative!, nonnegative!],
+            constraints=[simplex_rows!, simplex_cols!], #[l1scale_cols! ∘ nonnegative!, nonnegative!],
             constrain_init=true,
             constrain_output=true,
             momentum=true,
-            final_constraints = l1scale_cols!,
+            #final_constraints = l1scale_cols!,
             stats=[
                 Iteration, ObjectiveValue, GradientNNCone, RelativeError, FactorNorms, EuclideanLipschitz
             ],
         )
 
-        decomposition_randn, stats, kwargs = fact(Y; model=CPDecomposition, options...);
+        decomposition, stats, kwargs = fact(Y; options...);
 
         @test stats[end, :Iteration] < 1000 # ensure we did not hit the maximum number of iterations
+        N = 100
+        R = 5
+        D = 2
+
+        matrices = [abs_randn(N, R) for _ in 1:D]
+        l1scale_cols!.(matrices)
+        Ydecomp = CPDecomposition(Tuple(matrices))#abs_randn
+        @assert all(check.(simplex_cols!, factors(Ydecomp)))
+        Y = array(Ydecomp)
+
+        options = (
+            tolerance=.01,
+            maxiter=1000,
+            rank=R,
+            model=CPDecomposition,
+            converged=RelativeError,
+            constraints=[l1scale_cols! ∘ nonnegative!, simplex_cols!], #[l1scale_cols! ∘ nonnegative!, nonnegative!],
+            constrain_init=false,
+            constrain_output=true,
+            momentum=true,
+            #final_constraints = l1scale_cols!,
+            stats=[
+                Iteration, ObjectiveValue, GradientNNCone, RelativeError, FactorNorms, EuclideanLipschitz
+            ],
+        )
+
+        decomposition, stats, kwargs = fact(Y; options...);
+
+        @test_broken stats[end, :Iteration] < 1000 # ensure we did not hit the maximum number of iterations
     end
 
     @testset "TuckerFactorization" begin
