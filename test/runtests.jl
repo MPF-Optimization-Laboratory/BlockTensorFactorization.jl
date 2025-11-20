@@ -97,6 +97,18 @@ const VERBOSE = true
         B = randn(10, 20)
         @test slicewise_dot(A, A) ≈ A*A' # test this separately since it uses a different routine when the argument is the same
         @test slicewise_dot(A, B) ≈ A*B'
+
+        # CP product
+        R = 2
+        A = randn(4, R)
+        B = randn(5, R)
+        C = randn(6, R)
+        Y = CPDecomposition((A, B, C))
+        Y_array = array(Y)
+
+        @test cpproduct(A, B, C) ≈ Y_array
+        @test Y ≈ Y_array
+        @test Y[1, 2, 3] ≈ sum(A[1, r] * B[2, r] * C[3, r] for r in 1:R)
     end
 
 @testset "Constraints" begin
@@ -627,6 +639,29 @@ end
     end
     @testset "CPFactorization" begin
         fact = BlockTensorFactorization.factorize
+
+        # Regular run of CPDecomposition
+        A = randn(5, 2)
+        B = randn(5, 2)
+        C = randn(5, 2)
+        Y = CPDecomposition((A, B, C))
+        Y = array(Y)
+
+        decomposition, stats, kwargs = fact(Y;
+            rank=2,
+            model=CPDecomposition,
+            momentum=false,
+            #tolerance=(1, 0.045),
+            tolerance=0.045,
+            converged=RelativeError,
+            #converged=(GradientNNCone, RelativeError),
+            constrain_init=false,
+            maxiter=1,
+            #constraints=nonnegative!,
+            stats=[Iteration, ObjectiveValue, GradientNNCone, RelativeError, PrintStats]
+        );
+
+
 
         # Semi-interesting run of CPDecomposition
         N = 100

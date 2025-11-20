@@ -22,7 +22,7 @@ include("./curvaturetools.jl")
 export d_dx, d2_dx2, curvature, standard_curvature
 
 include("./tensorproducts.jl")
-export nmp, nmode_product, mtt, slicewise_dot, tuckerproduct, cpproduct
+export nmp, nmode_product, mtt, slicewise_dot, tuckerproduct, cpproduct, outer_product
 export ×₁, ×₂, ×₃, ×₄, ×₅, ×₆, ×₇, ×₈, ×₉
 export ⋅₁, ⋅₂, ⋅₃, ⋅₄, ⋅₅, ⋅₆, ⋅₇, ⋅₈, ⋅₉
 

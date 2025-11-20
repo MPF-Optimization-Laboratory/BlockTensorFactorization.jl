@@ -441,7 +441,6 @@ end
 factors(CPD::CPDecomposition) = CPD.factors
 array(CPD::CPDecomposition) = cpproduct(factors(CPD))
 frozen(CPD::CPDecomposition) = CPD.frozen
-vector_outer(v) = reshape(kron(reverse(v)...),length.(v))
 eachfactorindex(CPD::CPDecomposition) = 1:nfactors(CPD) # unlike other AbstractTucker's, back to 1 based since there's only matrix factors
 isfrozen(CPD::CPDecomposition, n::Integer) = n == 0 ? true : frozen(CPD)[n] # similar to eachfactorindex
 

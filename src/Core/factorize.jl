@@ -153,7 +153,7 @@ function default_kwargs(Y; kwargs...)
 
 	get!(kwargs, :rank) do # Can also be a tuple. For example, Tucker rank could be (1, 2, 3) for an order 3 array Y
 		isnothing(kwargs[:decomposition]) ? error("`rank_detect_factorize` should be called if no initial decomposition nor the rank is provided.") : rankof(kwargs[:decomposition])
-	end
+	end # TODO add a check that the keyword rank is compatible with the model and decomposition
 	get!(kwargs, :init) do
 		isnonnegative(Y) ? abs_randn : randn
 	end

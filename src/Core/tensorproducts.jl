@@ -196,6 +196,25 @@ function _gettuckerindex(core, matrices, I)
 end
 
 """
+    outer_product(vectors)
+    outer_product(vectors...)
+
+Outer product of a collection of vectors.
+
+For example,
+
+`outer_product(u, v) == u * v'`
+
+and
+
+`outer_product(u, v, w)[i, j, k] == u[i] * v[j] * w[k]`.
+
+Returned array will have same number dimensions as the length of the collection.
+"""
+outer_product(vectors) = reshape(kron(reverse(vectors)...),length.(vectors))
+outer_product(vectors...) = outer_product(vectors)
+
+"""
     cpproduct((A, B, C, ...))
     cpproduct(A, B, C, ...)
 
@@ -205,7 +224,7 @@ Example
 -------
 cpproduct(A, B, C) == @einsum T[i, j, k] := A[i, r] * B[j, r] * C[k, r]
 """
-cpproduct(matrices) = mapreduce(vector_outer, +, zip((eachcol.(matrices))...))
+cpproduct(matrices) = mapreduce(outer_product, +, zip((eachcol.(matrices))...))
 cpproduct(matrices...) = cpproduct(matrices)
 
 """
