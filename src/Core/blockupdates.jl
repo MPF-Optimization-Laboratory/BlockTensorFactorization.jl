@@ -499,7 +499,7 @@ end
 check(U::IdentityUpdate, D::AbstractDecomposition) = true
 getconstraint(_::IdentityUpdate) = noconstraint
 
-(_::IdentityUpdate)(x::T; kwargs...) where T = x
+(U::IdentityUpdate)(x::T; kwargs...) where T = x
 
 struct GenericConstraintUpdate <: ConstraintUpdate
     n::Integer
