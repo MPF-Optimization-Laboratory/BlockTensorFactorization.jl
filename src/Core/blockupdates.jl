@@ -464,6 +464,7 @@ end
 Converts an AbstractConstraint to a ConstraintUpdate on the factor n
 """
 ConstraintUpdate(n, constraint::AbstractConstraint; kwargs...) = error("converting $(typeof(constraint)) to a ConstraintUpdate is not yet supported")
+ConstraintUpdate(n, constraint::NoConstraint; kwargs...) = IdentityUpdate(n)
 ConstraintUpdate(n, constraint::GenericConstraint; kwargs...) = GenericConstraintUpdate(n, constraint)
 ConstraintUpdate(n, constraint::ProjectedNormalization; kwargs...) = Projection(n, constraint)
 ConstraintUpdate(n, constraint::Entrywise; kwargs...) = Projection(n, constraint)
@@ -490,6 +491,15 @@ function ConstraintUpdate(n, constraint::ComposedConstraint; kwargs...)
 end
 
 check(_::ConstraintUpdate, _::AbstractDecomposition) = error("checking $(typeof(constraint)) is not yet supported")
+
+struct IdentityUpdate <: ConstraintUpdate
+    n::Integer
+end
+
+check(U::IdentityUpdate, D::AbstractDecomposition) = true
+getconstraint(_::IdentityUpdate) = noconstraint
+
+(_::IdentityUpdate)(x::T; kwargs...) where T = x
 
 struct GenericConstraintUpdate <: ConstraintUpdate
     n::Integer

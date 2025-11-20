@@ -72,7 +72,7 @@ export LipschitzStep, ConstantStep, SPGStep
 export AbstractUpdate
 export GradientDescent, MomentumUpdate
 
-export ConstraintUpdate, GenericConstraintUpdate
+export ConstraintUpdate, GenericConstraintUpdate, IdentityUpdate
 export Projection, NNProjection, SafeNNProjection, Rescale
 
 export BlockedUpdate

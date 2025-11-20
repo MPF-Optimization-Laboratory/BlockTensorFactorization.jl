@@ -109,6 +109,7 @@ const VERBOSE = true
         @test cpproduct(A, B, C) ≈ Y_array
         @test Y ≈ Y_array
         @test Y[1, 2, 3] ≈ sum(A[1, r] * B[2, r] * C[3, r] for r in 1:R)
+        @test Y_array ≈ sum(outer_product((A[:, r], B[:, r], C[:, r])) for r in 1:R)
     end
 
 @testset "Constraints" begin
@@ -415,8 +416,18 @@ end
 end
 
 @testset "BlockUpdates" begin
+    # Update from a NoConstraint
+    G1 = Tucker1((3, 3, 3), 2)
+    G2 = deepcopy(G1)
+    U = ConstraintUpdate(1, noconstraint)
+
+    U(G1)
+    @test G1 == G2 # should actually do nothing so using == rather than ≈
+
+    # Update from ProjectedNormalization
     G1 = CPDecomposition((3,3,3), 2)
     G2 = deepcopy(G1)
+
     U = ConstraintUpdate(2, l2normalize_cols!)
 
     U(G1)
@@ -424,6 +435,7 @@ end
 
     @test G1 ≈ G2
 
+    # Update from a ComposedConstraint
     U = ConstraintUpdate(1, l2scale! ∘ nonnegative!)
     @test U.n == 1
 
@@ -656,12 +668,10 @@ end
             converged=RelativeError,
             #converged=(GradientNNCone, RelativeError),
             constrain_init=false,
-            maxiter=1,
-            #constraints=nonnegative!,
-            stats=[Iteration, ObjectiveValue, GradientNNCone, RelativeError, PrintStats]
+            maxiter=2,
+            constraints=[l2normalize_cols!, l2normalize_cols!, noconstraint],#nonnegative!,
+            stats=[Iteration, ObjectiveValue, GradientNorm, RelativeError, PrintStats,DisplayDecomposition]
         );
-
-
 
         # Semi-interesting run of CPDecomposition
         N = 100
