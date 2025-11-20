@@ -95,8 +95,8 @@ const VERBOSE = true
     @testset "Products" begin
         A = randn(10, 20)
         B = randn(10, 20)
-        @test all(slicewise_dot(A, A) .≈ A*A') # test this separately since it uses a different routine when the argument is the same
-        @test all(slicewise_dot(A, B) .≈ A*B')
+        @test slicewise_dot(A, A) ≈ A*A' # test this separately since it uses a different routine when the argument is the same
+        @test slicewise_dot(A, B) ≈ A*B'
     end
 
 @testset "Constraints" begin
@@ -114,19 +114,19 @@ const VERBOSE = true
 
         A = Array{Float64}(reshape(1:12, 3,4))
         l1normalize_rows!(A)
-        @test all(A .≈ [0 0 0 1; 0 0 0 1; 0 0 0 1])
+        @test A ≈ [0 0 0 1; 0 0 0 1; 0 0 0 1]
 
         A = Array{Float64}(reshape(1:12, 3,4))
         l1normalize_cols!(A)
-        @test all(A .≈ [0 0 0 0; 0 0 0 0; 1 1 1 1])
+        @test A ≈ [0 0 0 0; 0 0 0 0; 1 1 1 1]
 
         A = Array{Float64}(ones(2, 3))
         l1normalize_rows!(A)
-        @test all(A .≈ ones(2, 3) / 3)
+        @test A ≈ ones(2, 3) / 3
 
         A = Array{Float64}(ones(2, 3))
         l1normalize_cols!(A)
-        @test all(A .≈ ones(2, 3) / 2)
+        @test A ≈ ones(2, 3) / 2
 
         A = Array{Float64}(reshape(1:12, 3,2,2))
         l1scale_1slices!(A)
@@ -149,11 +149,11 @@ const VERBOSE = true
 
         A = Array{Float64}(ones(2, 3))
         l2normalize_rows!(A)
-        @test all(A .≈ ones(2, 3) / √3)
+        @test A ≈ ones(2, 3) / √3
 
         A = Array{Float64}(ones(2, 3))
         l2normalize_cols!(A)
-        @test all(A .≈ ones(2, 3) / √2)
+        @test A ≈ ones(2, 3) / √2
     end
 
     @testset "Linfinity" begin
@@ -184,6 +184,32 @@ const VERBOSE = true
         A = Array{Float64}(reshape(1:12, 3,4))
         l1normalize_cols!(A)
         @test A == [0 0 0 0; 0 0 0 0; 1 1 1 1]
+    end
+
+    @testset "Simplex" begin
+        v = [2.0, 0]
+        simplex!(v)
+        @test v == [1.0, 0.0]
+
+        v = [0.5, 0.6]
+        simplex!(v)
+        @test v ≈ [0.45, 0.55]
+
+        v = zeros(10)
+        simplex!(v)
+        @test v ≈ ones(10) / 10
+
+        v = -ones(10)
+        simplex!(v)
+        @test v ≈ ones(10) / 10
+
+        v = collect(0:0.1:1)
+        simplex!(v)
+        @test v ≈ [0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.1, 0.2, 0.3, 0.4]
+
+        A = Array{Float64}(reshape(1:12,3,4)) / 12
+        simplex_rows!(A)
+        @test A ≈ [0.0 1.0 4.0 7.0; 0.0 1.0 4.0 7.0; 0.0 1.0 4.0 7.0] / 12
     end
 
     @testset "Composition" begin
@@ -579,7 +605,9 @@ end
         decomposition, stats_data = fact(Y; model=CPDecomposition, rank=3, maxiter=2, do_subblock_updates=true)
     end
 
-    @testset "ModelFactorization" begin
+    @testset "Tucker1Factorization" begin
+        fact = BlockTensorFactorization.factorize
+
         # Regular run of Tucker1
         C = abs_randn(5, 11, 12)
         A = abs_randn(10, 5)
@@ -595,7 +623,10 @@ end
             stats=[Iteration, ObjectiveValue, GradientNNCone, RelativeError]
         );
 
-        @test stats[end, :iteration] < 1000 # ensure we did not hit the maximum number of iterations
+        @test stats[end, :Iteration] < 1000 # ensure we did not hit the maximum number of iterations
+    end
+    @testset "CPFactorization" begin
+        fact = BlockTensorFactorization.factorize
 
         # Semi-interesting run of CPDecomposition
         N = 100
@@ -611,8 +642,9 @@ end
         options = (
             tolerance=.01,
             maxiter=1000,
+            rank=R,
             converged=RelativeError,
-            constraints=[l1scale_cols! ∘ nonnegative!, simplex_cols!],
+            constraints=[l1scale_cols! ∘ nonnegative!, nonnegative!],
             constrain_init=true,
             constrain_output=true,
             momentum=true,
@@ -624,7 +656,11 @@ end
 
         decomposition_randn, stats, kwargs = fact(Y; model=CPDecomposition, options...);
 
-        @test stats[end, :iteration] < 1000 # ensure we did not hit the maximum number of iterations
+        @test stats[end, :Iteration] < 1000 # ensure we did not hit the maximum number of iterations
+    end
+
+    @testset "TuckerFactorization" begin
+        fact = BlockTensorFactorization.factorize
 
         # Regular run of Tucker
         G = abs_randn(2,3,4)
@@ -645,7 +681,7 @@ end
             stats=[Iteration, ObjectiveValue, GradientNNCone, RelativeError, EuclideanLipschitz, EuclideanStepSize]
         );
 
-        @test stats[end, :iteration] < 1000 # ensure we did not hit the maximum number of iterations
+        @test stats[end, :Iteration] < 1000 # ensure we did not hit the maximum number of iterations
     end
 end
 
