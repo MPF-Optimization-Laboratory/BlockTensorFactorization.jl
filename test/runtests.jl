@@ -668,10 +668,12 @@ end
             converged=RelativeError,
             #converged=(GradientNNCone, RelativeError),
             constrain_init=false,
-            maxiter=2,
+            maxiter=500,
             constraints=[l2normalize_cols!, l2normalize_cols!, noconstraint],#nonnegative!,
             stats=[Iteration, ObjectiveValue, GradientNorm, RelativeError, ] # PrintStats,DisplayDecomposition
         );
+
+        @test stats[end, :Iteration] < 500
 
         # Semi-interesting run of CPDecomposition
         N = 100
@@ -731,7 +733,7 @@ end
 
         decomposition, stats, kwargs = fact(Y; options...);
 
-        @test_broken stats[end, :Iteration] < 1000 # ensure we did not hit the maximum number of iterations
+        @test stats[end, :Iteration] < 1000 # ensure we did not hit the maximum number of iterations
     end
 
     @testset "TuckerFactorization" begin
