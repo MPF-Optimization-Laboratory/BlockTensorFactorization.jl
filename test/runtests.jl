@@ -670,7 +670,7 @@ end
             constrain_init=false,
             maxiter=2,
             constraints=[l2normalize_cols!, l2normalize_cols!, noconstraint],#nonnegative!,
-            stats=[Iteration, ObjectiveValue, GradientNorm, RelativeError, PrintStats,DisplayDecomposition]
+            stats=[Iteration, ObjectiveValue, GradientNorm, RelativeError, ] # PrintStats,DisplayDecomposition
         );
 
         # Semi-interesting run of CPDecomposition
