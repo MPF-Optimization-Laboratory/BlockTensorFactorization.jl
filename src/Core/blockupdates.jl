@@ -342,8 +342,7 @@ function make_gradient(T::Tucker, n::Integer, Y::AbstractArray; objective::L2, k
             matrices = matrix_factors(X)
             gram_matrices = map(A -> A'A, matrices) # gram matrices AA = A'A,
                                                     # BB = B'B, ...
-            grad = tuckerproduct(B, gram_matrices)
-                 - tuckerproduct(Y, adjoint.(matrices))
+            grad = tuckerproduct(B, gram_matrices) - tuckerproduct(Y, adjoint.(matrices))
             return grad
         end
         return gradient_core
@@ -354,8 +353,7 @@ function make_gradient(T::Tucker, n::Integer, Y::AbstractArray; objective::L2, k
             matrices = matrix_factors(X)
             Aₙ = factor(X, n)
             X̃ₙ = tuckerproduct(B, matrices; exclude=n)
-            grad = Aₙ * slicewise_dot(X̃ₙ, X̃ₙ; dims=n)
-                   - slicewise_dot(Y, X̃ₙ; dims=n)
+            grad = Aₙ * slicewise_dot(X̃ₙ, X̃ₙ; dims=n) - slicewise_dot(Y, X̃ₙ; dims=n)
             return grad
         end
         return gradient_matrix
@@ -373,8 +371,7 @@ function make_gradient(T::CPDecomposition, n::Integer, Y::AbstractArray; objecti
             matrices = matrix_factors(X)
             Aₙ = factor(X, n)
             X̃ₙ = tuckerproduct(B, matrices; exclude=n)
-            grad = Aₙ * slicewise_dot(X̃ₙ, X̃ₙ; dims=n)
-                   - slicewise_dot(Y, X̃ₙ; dims=n)
+            grad = Aₙ * slicewise_dot(X̃ₙ, X̃ₙ; dims=n) - slicewise_dot(Y, X̃ₙ; dims=n)
             return grad
         end
         return gradient_matrix
