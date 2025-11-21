@@ -649,6 +649,42 @@ end
         );
 
         @test stats[end, :Iteration] < 1000 # ensure we did not hit the maximum number of iterations
+
+        # More interesting run of factorize
+        I, J = 10, 20
+        R = 3
+
+        A = abs_randn(I, R)
+        B = abs_randn(R, J)
+        l1scale_cols!(A)
+        l1scale_cols!(B)
+
+        Ydecomp = Tucker1((B, A))
+        Y = array(Ydecomp)
+
+        options = (
+            rank=R,
+            model=Tucker1,
+            momentum=false,
+            do_subblock_updates=true,
+            tolerance=.01,
+            converged=RelativeError,
+            maxiter=500,
+            stats=[
+                Iteration, ObjectiveValue, GradientNNCone, RelativeError,
+            ],
+            constraints=[l1scale_cols! ∘ nonnegative!, l1scale_cols! ∘ nonnegative!],
+            constrain_init=true,
+            constrain_output=true,
+        )
+
+        decomposition, stats_data, kwargs = fact(Y; options...);
+        B_learned, A_learned = factors(decomposition)
+
+        @test isapprox(Y, A_learned*B_learned; rtol=0.02) # might be slightly more than 1% after `constrain_output`
+        @test all(check.(simplex_cols!, (B_learned, A_learned)))
+        @test stats[end, :Iteration] < 500 # ensure we did not hit the maximum number of iterations
+
     end
     @testset "CPFactorization" begin
         fact = BlockTensorFactorization.factorize
@@ -710,6 +746,7 @@ end
         R = 5
         D = 2
 
+        # More constrained problem
         matrices = [abs_randn(N, R) for _ in 1:D]
         l1scale_cols!.(matrices)
         Ydecomp = CPDecomposition(Tuple(matrices))#abs_randn
