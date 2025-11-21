@@ -7,6 +7,7 @@ using Test
 using Random
 Random.seed!(3141592653589) # Reproducibility of random initializations
 using LinearAlgebra
+using Statistics
 
 using BlockTensorFactorization
 
@@ -803,10 +804,39 @@ end
 end
 
 @testset "RankDetection" begin
+    @test BlockTensorFactorization.Core.three_point_circle((1,2), (2,1), (5,2)) == (√5, (3, 3))
+
+    # any smooth function s.t.
+    # f(0) = 1, f(1) = 0, f''(1) = 0
+    f(x) = 3x^3 - 5x^2 + x + 1
+    # k(x) = f''(x) / (1 + (f'(x))^2)^(3/2)
+    k(x) = (18x-10)/(1 + (1 - 10x + 9x^2)^2)^(1.5) # closed form true curvature
+    x = range(0, 1, length=20)[2:end] # exclude x=0 point (necessary for :splines)
+    y = f.(x)
+    k_true = k.(x)
+    methods = (:finite_differences, :splines, :circles)
+    k_finite_differences, k_splines, k_circles = (standard_curvature(y; method=method) for method in methods)
+    # Mean Absolute Percentage Error
+    MAPE(test_vals, true_vals) = mean(@. abs((test_vals - true_vals)/true_vals))
+    @test MAPE(k_splines, k_true) < 0.07 # 7%
+    @test MAPE(k_circles, k_true) < 0.08 # 8%
+    @test MAPE(k_finite_differences, k_true) < 0.09 # 9%
+
     T = Tucker1((10, 10, 10), 3)
     Y = array(T)
-    decomposition, stats, kwargs, final_rel_errors = rank_detect_factorize(Y; model=Tucker1)
+    decomposition, stats, kwargs, final_rel_errors = rank_detect_factorize(Y; model=Tucker1, curvature_method=:splines)
     @test kwargs[:rank] == 3
+
+    decomposition, stats, kwargs, final_rel_errors = rank_detect_factorize(Y; model=Tucker1, curvature_method=:circles)
+    @test kwargs[:rank] == 3
+
+    decomposition, stats, kwargs, final_rel_errors = rank_detect_factorize(Y; model=Tucker1, curvature_method=:finite_differences)
+    @test kwargs[:rank] == 3
+
+    T = CPDecomposition((10, 11, 12), 4)
+    Y = array(T)
+    decomposition, stats, kwargs, final_rel_errors = rank_detect_factorize(Y; model=CPDecomposition, curvature_method=:splines, online_rank_estimation=true)
+    @test kwargs[:rank] == 4
 end
 
 end

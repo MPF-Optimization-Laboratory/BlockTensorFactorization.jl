@@ -296,7 +296,7 @@ end
 
 """Extracts the first and second derivatives of the splines at the knots"""
 function d_dx_and_d2_dx2_spline(y::AbstractVector{<:Real}; h=1)
-    _, b, c, _ = cubic_spline_coefficients(y::AbstractVector{<:Real}; h=1)
+    _, b, c, _ = cubic_spline_coefficients(y::AbstractVector{<:Real}; h)
     dy_dx = c
     dy2_dx2 = 2b
     return dy_dx, dy2_dx2
@@ -304,27 +304,29 @@ end
 
 
 """
-    curvature(y::AbstractVector{<:Real})
+    curvature(y::AbstractVector{<:Real}; method=:finite_differences)
 
 Approximates the signed curvature of a function given evenly spaced samples.
 
 Uses [`d_dx`](@ref) and [`d2_dx2`](@ref) to approximate the first two derivatives.
 """
 function curvature(y::AbstractVector{<:Real}; method=:finite_differences, kwargs...)
-    if method == finite_differences
+    if method == :finite_differences
         dy_dx = d_dx(y; kwargs...)
         dy2_dx2 = d2_dx2(y; kwargs...)
         return @. dy2_dx2 / (1 + dy_dx^2)^1.5
     elseif method == :splines
         dy_dx, dy2_dx2 = d_dx_and_d2_dx2_spline(y; h=1)
         return @. dy2_dx2 / (1 + dy_dx^2)^1.5
+    elseif method == :circles
+        return circumscribed_standard_curvature(y)
     else
         throw(ArgumentError("method $method not implemented"))
     end
 end
 
 """
-    standard_curvature(y::AbstractVector{<:Real})
+    standard_curvature(y::AbstractVector{<:Real}; method=:finite_differences)
 
 Approximates the signed curvature of a function, scaled to the unit box ``[0,1]^2``.
 
@@ -341,32 +343,62 @@ function standard_curvature(y::AbstractVector{<:Real}; method=:finite_difference
         # y_max = 1
         dy_dx, dy2_dx2 = d_dx_and_d2_dx2_spline(y; h=Δx)
         return @. dy2_dx2 / (1 + dy_dx^2)^1.5
+    elseif method == :circles
+        return circumscribed_standard_curvature(y)
     else
         throw(ArgumentError("method $method not implemented"))
     end
 end
 
-"""
-Finds the radius of the circumscribed circle between points (a,f), (b,g), (c,h)
-"""
-function circumscribed_radius((a,f),(b,g),(c,h))
-    d = 2*(a*(g-h)+b*(h-f)+c*(f-g))
-    p = ((a^2+f^2)*(g-h)+(b^2+g^2)*(h-f)+(c^2+h^2)*(f-g)) / d
-    q = ((a^2+f^2)*(b-c)+(b^2+g^2)*(c-a)+(c^2+h^2)*(a-b)) / d
-    r = sqrt((a-p)^2+(f-q)^2)
-    return r
-end
+# """
+# Finds the radius of the circumscribed circle between points (a,f), (b,g), (c,h)
+# """
+# function circumscribed_radius((a,f),(b,g),(c,h))
+#     d = 2*(a*(g-h)+b*(h-f)+c*(f-g))
+#     p = ((a^2+f^2)*(g-h)+(b^2+g^2)*(h-f)+(c^2+h^2)*(f-g)) / d
+#     q = ((a^2+f^2)*(b-c)+(b^2+g^2)*(c-a)+(c^2+h^2)*(a-b)) / d
+#     r = sqrt((a-p)^2+(f-q)^2)
+#     return r
+# end
 
 function circumscribed_standard_curvature(y)
-    n = length(v)
+    n = length(y)
     ymax = maximum(y)
     y = y / ymax
-    k = zero(ymax)
+    k = zero(y)
     a, b, c = 0, 1/n, 2/n
     for i in eachindex(k)[2:end-1]
-        k[i] = 1 / circumscribed_radius((a,y[i-1]),(b,y[i]),(c,y[i+1]))
+        k[i] = signed_circle_curvature((a,y[i-1]),(b,y[i]),(c,y[i+1]))
+        #k[i] = 1 / circumscribed_radius((a,y[i-1]),(b,y[i]),(c,y[i+1]))
     end
     k[1] = k[2]
     k[end] = k[end-1]
     return k
+end
+
+"""radius r and center point (p,q) of the circle passing through the three points"""
+function three_point_circle((a,f),(b,g),(c,h))
+    fg = f-g
+    gh = g-h
+    hf = h-f
+    ab = a-b
+    bc = b-c
+    ca = c-a
+    a2 = a^2
+    b2 = b^2
+    c2 = c^2
+    f2 = f^2
+    g2 = g^2
+    h2 = h^2
+    p = (a2*gh + b2*hf + c2*fg - gh*hf*fg) / (a*gh + b*hf + c*fg) / 2
+    q = (f2*bc + g2*ca + h2*ab - bc*ca*ab) / (f*bc + g*ca + h*ab) / 2
+    r = sqrt((a-p)^2 + (f-q)^2)
+    return r, (p, q)
+end
+
+function signed_circle_curvature((a,f),(b,g),(c,h))
+    @assert a < b < c
+    r, _ = three_point_circle((a,f),(b,g),(c,h))
+    sign = g > (f+h)/2 ? -1 : 1
+    return sign / r
 end

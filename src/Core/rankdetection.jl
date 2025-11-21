@@ -1,11 +1,26 @@
 """
-    rank_detect_factorize(Y; online_rank_estimation=false, rank=nothing, model=Tucker1, kwargs...)
+    rank_detect_factorize(Y; kwargs...)
 
 Wraps `factorize()` with rank detection.
 
 Selects the rank that maximizes the standard curvature of the Relative Error (as a function of rank).
+
+# Keywords
+- `online_rank_estimation`: `false`. Set to `true` to stop testing larger ranks after the first peak in curvature
+- `curvature_method`: `:splines`. Can also pick `:finite_differences` (faster but less accurate) or `circles` (fastest and smallest memory but more sensitive to results from `factorize`)
+- `model`: `Tucker1`. Only rank detection with `Tucker1` and `CPDecomposition` is currently implemented
+- `max_rank`: `max_possible_rank(Y, model)`. Test ranks from `1` up to `max_rank`. Defaults to largest possible rank under the model
+- `rank`: `nothing`. If a rank is passed, rank detection is ignored and `factorize(Y; kwargs...)` is called
+
+Any other keywords from [`factorize`](@ref), full list given by [`default_kwargs`](@ref).
 """
-function rank_detect_factorize(Y; online_rank_estimation=false, rank=nothing, model=Tucker1, kwargs...)
+function rank_detect_factorize(Y;
+    online_rank_estimation=false,
+    rank=nothing,
+    model=Tucker1,
+    max_rank=max_possible_rank(Y, model),
+    curvature_method=:splines,
+    kwargs...)
     if isnothing(rank)
         # Initialize output and final error lists
         all_outputs = []
@@ -20,8 +35,10 @@ function rank_detect_factorize(Y; online_rank_estimation=false, rank=nothing, mo
             kwargs[:stats] = [RelativeError, kwargs[:stats]...] # not using pushfirst! since kwargs[:stats] could be a Tuple
         end
         kwargs[:model] = model # add the model back into kwargs
+        kwargs[:curvature_method] = curvature_method# :splines
+        kwargs[:max_rank] = max_rank
 
-        for rank in possible_ranks(Y, model)
+        for rank in 1:max_rank
             @info "Trying rank=$rank..."
 
             kwargs[:rank] = rank # add the rank into kwargs
@@ -35,7 +52,7 @@ function rank_detect_factorize(Y; online_rank_estimation=false, rank=nothing, mo
             @info "Final relative error = $final_rel_error"
 
             if (online_rank_estimation == true) && length(final_rel_errors) >= 3 # Need at least 3 points to evaluate curvature
-                curvatures = standard_curvature(final_rel_errors; method=:finite_differences) # method=:splines
+                curvatures = standard_curvature(final_rel_errors; method=curvature_method) # method=:splines
                 if curvatures[end] ≈ maximum(curvatures) # want the last curvature to be significantly smaller than the max
                     continue
                 else
@@ -57,9 +74,9 @@ function rank_detect_factorize(Y; online_rank_estimation=false, rank=nothing, mo
 end
 
 """
-    possible_ranks(Y, model)
+    max_possible_rank(Y, model)
 
-Returns the rank of possible ranks `Y` could have under the `model`.
+Returns the maximum rank possible `Y` could have under the `model`.
 
 For matrices `I × J` this is `1:min(I, J)`. This is can be extended to tensors for different type
 of decompositions.
@@ -70,16 +87,16 @@ The CP-rank is `≤ minimum_{n} (prod(I1,...,IN) / In)` for tensors `I1 × … �
 some shapes have have tighter upper bounds. For example, `2 × I × I` tensors over ℝ have a maximum
 rank of `floor(3I/2)`.
 """
-function possible_ranks(Y, model)
+function max_possible_rank(Y, model) # TODO store this info with the Corresponding AbstractDecomposition
     if model <: Tucker1
         I, Js... = size(Y)
         max_rank = min(I, prod(Js))
-        return 1:max_rank
+        return max_rank
     elseif model <: CPDecomposition
         Is = size(Y)
         # There exist tighter upper bounds for particular shapes like I×I×K, but this a simple upper bound that works for all shapes
         max_rank = minimum(prod(Is) .÷ Is) # ÷ is Integer division
-        return 1:max_rank
+        return max_rank
     else
         error("Possible ranks for models of type $model are not implemented")
     end

@@ -83,7 +83,7 @@ export getconstraint, smart_insert!, smart_interlace!, group_by_factor
 
 # High level / user-interface
 #include("./factorize.jl")
-export factorize
+export factorize, default_kwargs
 
 #include("./multiscale.jl")
 export multiscale_factorize
@@ -91,6 +91,6 @@ export coarsen, interpolate, scale_constraint
 
 #include("./rankdetection.jl")
 export rank_detect_factorize
-export possible_ranks
+export max_possible_rank
 
 end # module BlockTensorFactorization
