@@ -463,7 +463,12 @@ end
         X = [(2t)'; -(0.01t)']
         order = [2, 1]
         # Should warn since both rows of Y are closest to the first row of X
-        @test_warn "`match_slices!` may not have found the best ordering; using O(n²) greedy approach." (order2_found = match_slices!(X, Y; dims=1))
+        @test_warn "`match_slices!` may not have found the best ordering; using O(n²) greedy approach." match_slices!(X, Y; dims=1)
+
+        Y = [(1.9t)'; (2t)']
+        X = [(2t)'; -(0.01t)']
+        order = [2, 1]
+        order2_found = match_slices!(X, Y; dims=1)
         @test order2_found == invperm(order) # Should still find the correct inverse permutation
     end
 end
