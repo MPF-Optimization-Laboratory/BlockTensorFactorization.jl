@@ -418,10 +418,10 @@ nonnegative! = Entrywise(ReLU, isnonnegative)
 IntervalConstraint(a, b) = Entrywise(x -> clamp(x, a, b), x -> a ≤ x ≤ b)
 
 function binaryproject(x)
-    if x > 0.5
-        return one(x)
-    else
+    if x < 0.5
         return zero(x)
+    else
+        return one(x)
     end
 end
 

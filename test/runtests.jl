@@ -252,6 +252,30 @@ const VERBOSE = true
         @test ProjectedNormalization(l1scale!) == l1normalize!
         @test ScaledNormalization(l1normalize!) == l1scale!
     end
+
+    @testset "IntervalConstraint" begin
+        c! = IntervalConstraint(-1, 2)
+        v = [4, -1, 0, 0.5, 2, -2]
+        c!(v)
+        @test v == [2, -1, 0, 0.5, 2, -1]
+
+        v = [4, -1, 0, 0.5, 2, -2]
+        binary!(v)
+        @test v == [1, 0, 0, 1, 1, 0]
+    end
+
+    @testset "LinearConstraint" begin
+        A = randn(10, 3)
+        x = rand(3)
+        b = A*x
+        x_input = x + 0.01*rand(3)
+        x_proj = x_input - A' * ( (A*A') \ (A*x_input .- b) )
+
+        c! = LinearConstraint(A, b)
+        c!(x_input)
+        @test x_input ≈ x_proj
+        @test A*x_input ≈ b
+    end
 end
 
 @testset "SuperDiagonal" begin
@@ -413,6 +437,34 @@ end
         T_noisy = Tucker1((B_noisy,A_noisy))
         order_found = match_factors!(T_noisy, T)
         @test order_found == invperm(order) # Should find the inverse permutation
+
+        T = CPDecomposition((5,4,6), 3)
+        A, B, C = factors(T)
+        A_noisy = A + 0.01*randn(size(A))
+        B_noisy = B + 0.01*randn(size(B))
+        C_noisy = C + 0.01*randn(size(C))
+        order = [2, 3, 1]
+        A_noisy .= @view A_noisy[:, order]
+        B_noisy .= @view B_noisy[:, order]
+        C_noisy .= @view C_noisy[:, order]
+        T_noisy = CPDecomposition((A_noisy,B_noisy, C_noisy))
+        order_found = match_factors!(T_noisy, T)
+        @test order_found == invperm(order) # Should find the inverse permutation
+
+        t = range(0, 1; length=10)
+        X = [(1.9t)'; (2t)']
+        Y = [(2t)'; -(0.01t)']
+        order = [2, 1]
+        # should be stable since we look through Y and find its best match in X
+        @test_nowarn order_found = match_slices!(X, Y; dims=1)
+        @test order_found == invperm(order) # Should find the inverse permutation
+
+        Y = [(1.9t)'; (2t)']
+        X = [(2t)'; -(0.01t)']
+        order = [2, 1]
+        # Should warn since both rows of Y are closest to the first row of X
+        @test_warn "`match_slices!` may not have found the best ordering; using O(n²) greedy approach." (order2_found = match_slices!(X, Y; dims=1))
+        @test order2_found == invperm(order) # Should still find the correct inverse permutation
     end
 end
 
@@ -845,19 +897,30 @@ end
 
     # any smooth function s.t.
     # f(0) = 1, f(1) = 0, f''(1) = 0
-    f(x) = 3x^3 - 5x^2 + x + 1
+    f(x) = (x-1)^4 # 3x^3 - 5x^2 + x + 1
     # k(x) = f''(x) / (1 + (f'(x))^2)^(3/2)
-    k(x) = (18x-10)/(1 + (1 - 10x + 9x^2)^2)^(1.5) # closed form true curvature
-    x = range(0, 1, length=20)[2:end] # exclude x=0 point (necessary for :splines)
+    k(x) = 12*(x-1)^2 / (1 + (4*(x-1)^3)^2)^(1.5) #(18x-10)/(1 + (1 - 10x + 9x^2)^2)^(1.5)
+    # closed form true curvature
+    x = range(0, 1, length=20)[2:end] # exclude left end point (we assume these values)
     y = f.(x)
     k_true = k.(x)
     methods = (:finite_differences, :splines, :circles)
     k_finite_differences, k_splines, k_circles = (standard_curvature(y; method=method) for method in methods)
     # Mean Absolute Percentage Error
-    MAPE(test_vals, true_vals) = mean(@. abs((test_vals - true_vals)/true_vals))
-    @test MAPE(k_splines, k_true) < 0.07 # 7%
-    @test MAPE(k_circles, k_true) < 0.08 # 8%
-    @test MAPE(k_finite_differences, k_true) < 0.09 # 9%
+    function MAPE(test_vals, true_vals)
+        out = @. abs((test_vals - true_vals)/(true_vals))
+
+        # Use the next largest value
+        problem_indexes = abs.(true_vals) .< √(eps())
+        if any(problem_indexes)
+            next_smallest_value = minimum(abs.(true_vals[abs.(true_vals) .>= √(eps())]))
+            out[problem_indexes] .= abs.((test_vals[problem_indexes]) ./ next_smallest_value)
+        end
+        return mean(out)
+    end
+    @test MAPE(k_splines, k_true) < 0.02 # 2%
+    @test MAPE(k_circles, k_true) < 0.03 # 3%
+    @test MAPE(k_finite_differences, k_true) < 0.03 # 3%
 
     T = Tucker1((10, 10, 10), 3)
     Y = array(T)
