@@ -1,175 +1,4 @@
-"""Short helpers and operations related to finite differences and curavture"""
-
-# """
-#     d2_dx2(y::AbstractVector{<:Real}; order::Integer=length(y))
-
-# Approximates the 2nd derivative of a function using only given samples y of that function.
-
-# Assumes y came from f(x) where x was an evenly sampled, unit intervel grid.
-# Note the approximation uses centered three point finite differences for the
-# next-to-end points, and foward/backward three point differences for the begining/end points
-# respectively. The remaining interior points use five point differences.
-
-# Will use the largest order method possible by defult (currently 5 points), but can force
-# a specific order method with the keyword `order`.
-# See [`d_dx`](@ref).
-# """
-# function d2_dx2(y::AbstractVector{<:Real}; order::Integer=length(y))
-#     n = length(y)
-#     if n < 3
-#         throw(ArgumentError("input $y must have at least length 3"))
-#     elseif order <= 2
-#         throw(ArgumentError("order $order must be at least 3"))
-#     end
-
-#     if order == 3
-#         return _d2_dx2_3(y)
-#     elseif order == 4
-#         return _d2_dx2_4(y)
-#     elseif order >= 5
-#         return _d2_dx2_5(y)
-#     else
-#         throw(ErrorException("Something went wrong with the order $order."))
-#     end
-# end
-# # TODO is there a package that does this? The ones I've seen require the forward function.
-
-# function _d2_dx2_3(y::AbstractVector{<:Real})
-#     d = similar(y)
-#     for i in eachindex(y)[begin+1:end-1]
-#         d[i] = y[i-1] - 2*y[i] + y[i+1]
-#     end
-#     # Assume the same curvature at the end points
-#     d[begin] = d[begin+1]
-#     d[end] = d[end-1]
-#     return d
-# end
-
-# function _d2_dx2_4(y::AbstractVector{<:Real})
-#     d = similar(y)
-#     each_i = eachindex(y)
-
-#     for i in each_i[begin+1:end-1]
-#         d[i] = y[i-1] - 2*y[i] + y[i+1] # Note this is the same estimate as _d2_dx2_3
-#     end
-
-#     # Four point forward/backwards estimate at end points
-#     i = each_i[begin]
-#     d[i] = (6*y[i] - 15*y[i+1] + 12*y[i+2] - 3*y[i+3])/3
-
-#     i = each_i[end]
-#     d[i] = (-3*y[i-3] + 12*y[i-2] -15*y[i-1] +6*y[i])/3
-#     return d
-# end
-
-# function _d2_dx2_5(y::AbstractVector{<:Real})
-#     d = similar(y)
-#     each_i = eachindex(y)
-
-#     # Interior Ppints
-#     for i in each_i[begin+2:end-2]
-#         d[i] = (-y[i-2] + 16*y[i-1] - 30*y[i] + 16*y[i+1] - y[i+2])/12
-#     end
-
-#     # Boundary and next-to boundary points
-#     i = each_i[begin+2]
-#     d[i-2] = (35*y[i-2] - 104*y[i-1] + 114*y[i] - 56*y[i+1] + 11*y[i+2])/12
-#     d[i-1] = (11*y[i-2] - 20*y[i-1] + 6*y[i] + 4*y[i+1] - y[i+2])/12
-
-#     i = each_i[end-2]
-#     d[i+1] = (-y[i-2] + 4*y[i-1] + 6*y[i] - 20*y[i+1] + 11*y[i+2])/12
-#     d[i+2] = (11*y[i-2] - 56*y[i-1] + 114*y[i] - 104*y[i+1] + 35*y[i+2])/12
-
-#     return d
-# end
-
-# """
-#     d_dx(y::AbstractVector{<:Real})
-
-# Approximates the 1nd derivative of a function using only given samples y of that function.
-
-# Assumes y came from f(x) where x was an evenly sampled, unit intervel grid.
-# Note the approximation uses centered three point finite differences for the
-# next-to-end points, and foward/backward three point differences for the begining/end points
-# respectively. The remaining interior points use five point differences.
-
-# Will use the largest order method possible by defult (currently 5 points), but can force
-# a specific order method with the keyword `order`.
-# See [`d2_dx2`](@ref).
-# """
-# function d_dx(y::AbstractVector{<:Real}; order::Integer=length(y))
-#     n = length(y)
-#     if n < 3
-#         throw(ArgumentError("input $y must have at least length 3"))
-#     elseif order <= 2
-#         throw(ArgumentError("order $order must be at least 3"))
-#     end
-
-#     if order == 3
-#         return _d_dx_3(y)
-#     elseif order == 4
-#         return _d_dx_4(y)
-#     elseif order >= 5
-#         return _d_dx_5(y)
-#     else
-#         throw(ErrorException("Something went wrong with the order $order."))
-#     end
-# end
-
-# function _d_dx_3(y::AbstractVector{<:Real})
-#     d = similar(y)
-#     each_i = eachindex(y)
-
-#     for i in each_i[begin+1:end-1]
-#         d[i] = (-y[i-1] + y[i+1])/2
-#     end
-
-#     i = each_i[begin+1]
-#     d[begin] = (-3*y[i-1] + 4*y[i] - y[i+1])/2
-
-#     i = each_i[end-1]
-#     d[end] = (y[i-1] - 4*y[i] + 3*y[i+1])/2
-#     return d
-# end
-
-# function _d_dx_4(y::AbstractVector{<:Real})
-#     d = similar(y)
-#     each_i = eachindex(y)
-
-#     for i in each_i[begin+1:end-2]
-#         d[i] = (-2*y[i-1] - 3*y[i] + 6*y[i+1] - y[i+2])/6 # four points is odd so using a half forward estimate
-#     end
-
-#     i = each_i[begin]
-#     d[i] = (-11*y[i] + 18*y[i+1] - 9*y[i+2] + 2*y[i+3])/6
-
-#     i = each_i[end]
-#     d[i-1] = (y[i-3] - 6*y[i-2] + 3*y[i-1] + 2*y[i])/6
-#     d[i]   = (-2*y[i-3] + 9*y[i-2] - 18*y[i-1] + 11*y[i])/6
-
-#     return d
-# end
-
-# function _d_dx_5(y::AbstractVector{<:Real})
-#     d = similar(y)
-#     each_i = eachindex(y)
-
-#     # Interior Ppints
-#     for i in each_i[begin+2:end-2]
-#         d[i] = (2*y[i-2] - 16*y[i-1] + 16*y[i+1] - 2*y[i+2])/24
-#     end
-
-#     # Boundary and next-to boundary points
-#     i = each_i[begin+2]
-#     d[i-2] = (-50*y[i-2] + 96*y[i-1] - 72*y[i] + 32*y[i+1] - 6*y[i+2])/24
-#     d[i-1] = (-6*y[i-2] - 20*y[i-1] + 36*y[i] - 12*y[i+1] + 2*y[i+2])/24
-
-#     i = each_i[end-2]
-#     d[i+1] = (-2*y[i-2] + 12*y[i-1] - 36*y[i] + 20*y[i+1] + 6*y[i+2])/24
-#     d[i+2] = (6*y[i-2] - 32*y[i-1] + 72*y[i] - 96*y[i+1] + 50*y[i+2])/24
-
-#     return d
-# end
+"""Short helpers and operations related to finite differences and curvature"""
 
 """
     d_dx(y::AbstractVector{<:Real})
@@ -294,7 +123,11 @@ function make_spline(y::AbstractVector{<:Real}; h=1)
     return f
 end
 
-"""Extracts the first and second derivatives of the splines at the knots"""
+"""
+    d_dx_and_d2_dx2_spline(y::AbstractVector{<:Real}; h=1)
+
+Extracts the first and second derivatives of the splines from y at the knots
+"""
 function d_dx_and_d2_dx2_spline(y::AbstractVector{<:Real}; h=1)
     _, b, c, _ = cubic_spline_coefficients(y::AbstractVector{<:Real}; h)
     dy_dx = c
@@ -319,7 +152,7 @@ function curvature(y::AbstractVector{<:Real}; method=:finite_differences, kwargs
         dy_dx, dy2_dx2 = d_dx_and_d2_dx2_spline(y; h=1)
         return @. dy2_dx2 / (1 + dy_dx^2)^1.5
     elseif method == :circles
-        return circumscribed_standard_curvature(y)
+        return circle_curvature(y; h=1)
     else
         throw(ArgumentError("method $method not implemented"))
     end
@@ -330,53 +163,75 @@ end
 
 Approximates the signed curvature of a function, scaled to the unit box ``[0,1]^2``.
 
+Assumes the function is 1 at 0 and (after x dimension is scaled) 0 at 1.
+
 See [`curvature`](@ref).
 """
 function standard_curvature(y::AbstractVector{<:Real}; method=:finite_differences, kwargs...)
-    Δx = 1 / (length(y) - 1) # An interval 0:10 has length(0:10) = 11, but measure 10-0 = 10
+    Δx = 1/length(y)
+    # An interval 0:10 has length(0:10) = 11, but measure 10-0 = 10 so we may think to use 1/(length(y) - 1), but we need to consider the left end point of y is at 1/length(y) and not zero.
     if method == :finite_differences
+        y = [1; y; 0]
         y_max = maximum(y)
         dy_dx = d_dx(y; kwargs...) / (Δx * y_max)
         dy2_dx2 = d2_dx2(y; kwargs...) / (Δx^2 * y_max)
-        return @. dy2_dx2 / (1 + dy_dx^2)^1.5
+        curvature =  @. dy2_dx2 / (1 + dy_dx^2)^1.5
+        return curvature[begin+1:end-1]
     elseif method == :splines
         # y_max = 1
         dy_dx, dy2_dx2 = d_dx_and_d2_dx2_spline(y; h=Δx)
         return @. dy2_dx2 / (1 + dy_dx^2)^1.5
     elseif method == :circles
-        return circumscribed_standard_curvature(y)
+        return circle_curvature(y / max(1,maximum(y)); h=Δx)
     else
         throw(ArgumentError("method $method not implemented"))
     end
 end
 
-# """
-# Finds the radius of the circumscribed circle between points (a,f), (b,g), (c,h)
-# """
-# function circumscribed_radius((a,f),(b,g),(c,h))
-#     d = 2*(a*(g-h)+b*(h-f)+c*(f-g))
-#     p = ((a^2+f^2)*(g-h)+(b^2+g^2)*(h-f)+(c^2+h^2)*(f-g)) / d
-#     q = ((a^2+f^2)*(b-c)+(b^2+g^2)*(c-a)+(c^2+h^2)*(a-b)) / d
-#     r = sqrt((a-p)^2+(f-q)^2)
-#     return r
-# end
+"""
+    circle_curvature(y::AbstractVector{<:Real}; h=1, estimate_endpoints=true)
 
-function circumscribed_standard_curvature(y)
-    n = length(y)
-    ymax = maximum(y)
-    y = y / ymax
+Inverse radius of a the circle passing through each 3 adjacent points on `y`,
+`(0,y[i-1])`, `(h,y[i])`, and `(2h,y[i+1])`.
+
+If `estimate_endpoints=true`, assumes the function that y comes from is 1 to the left of the given values, and 0 to the right. This is typical of relative error decay as a function of rank.
+If `false`, pads the boundary with the adjacent curvature.
+
+See [`three_point_circle`](@ref).
+"""
+function circle_curvature(y::AbstractVector{<:Real}; h=1, estimate_endpoints=true)
     k = zero(y)
-    a, b, c = 0, 1/n, 2/n
-    for i in eachindex(k)[2:end-1]
+    a, b, c = 0, h, 2h
+    eachindex_k = eachindex(k)
+    for i in eachindex_k[2:end-1]
         k[i] = signed_circle_curvature((a,y[i-1]),(b,y[i]),(c,y[i+1]))
-        #k[i] = 1 / circumscribed_radius((a,y[i-1]),(b,y[i]),(c,y[i+1]))
     end
-    k[1] = k[2]
-    k[end] = k[end-1]
+
+    if estimate_endpoints
+        i = eachindex_k[1]
+        k[i] = signed_circle_curvature((a, 1),(b,y[i]),(c,y[i+1]))
+        i = eachindex_k[end]
+        k[i] = signed_circle_curvature((a,y[i-1]),(b,y[i]),(c, 0))
+    else
+        k[1] = k[2]
+        k[end] = k[end-1]
+    end
+
     return k
 end
 
-"""radius r and center point (p,q) of the circle passing through the three points"""
+"""
+    three_point_circle((a,f),(b,g),(c,h))
+
+Calculates radius `r` and center point `(p, q)` of the circle passing through the three points
+in the xy-plane.
+
+# Example
+```
+r, (p, q) = three_point_circle((1,2), (2,1), (5,2))
+r, (p, q) == (√5, (3, 3))
+````
+"""
 function three_point_circle((a,f),(b,g),(c,h))
     fg = f-g
     gh = g-h
@@ -396,6 +251,13 @@ function three_point_circle((a,f),(b,g),(c,h))
     return r, (p, q)
 end
 
+"""
+    signed_circle_curvature((a,f),(b,g),(c,h))
+
+Signed inverse radius of the circle passing through the 3 points in the xy-plane.
+
+See [`three_point_circle`](@ref).
+"""
 function signed_circle_curvature((a,f),(b,g),(c,h))
     @assert a < b < c
     r, _ = three_point_circle((a,f),(b,g),(c,h))
