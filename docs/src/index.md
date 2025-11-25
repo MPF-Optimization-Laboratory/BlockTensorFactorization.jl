@@ -1,4 +1,4 @@
-# Block Tensor Decomposition
+# BlockTensorFactorization.jl
 
 ## About this package
 `BlockTensorFactorization.jl` is a package to factorize tensors. The main feature is its flexibility at decomposing input tensors according to many common tensor models (ex. CP, Tucker) with a number of constraints (ex. nonnegative, simplex).

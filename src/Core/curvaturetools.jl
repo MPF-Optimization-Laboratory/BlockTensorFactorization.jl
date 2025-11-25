@@ -3,7 +3,11 @@
 """
     d_dx(y::AbstractVector{<:Real})
 
-Approximate first derivative with finite elements. Assumes y[i] = y(x_i) are samples with unit spaced inputs x_{i+1} - x_i = 1.
+Approximate first derivative with finite elements.
+
+``\\frac{d}{dx}y[i] \\approx \\frac{1}{2\\Delta x}(y[i+1] - y[i-1])``
+
+Assumes `y[i] = y(x[i])` are samples with unit spaced inputs `Δx = x[i+1] - x[i] = 1`.
 """
 function d_dx(y::AbstractVector{<:Real})
     if length(y) < 3
@@ -30,7 +34,11 @@ end
 """
     d2_dx2(y::AbstractVector{<:Real})
 
-Approximate second derivative with finite elements. Assumes y[i] = y(x_i) are samples with unit spaced inputs x_{i+1} - x_i = 1.
+Approximate second derivative with finite elements.
+
+``\\frac{d^2}{dx^2}y[i] \\approx \\frac{1}{\\Delta x^2}(y[i-1] - 2y[i] + y[i+1])``
+
+Assumes `y[i] = y(x[i])` are samples with unit spaced inputs `Δx = x[i+1] - x[i] = 1`.
 """
 function d2_dx2(y::AbstractVector{<:Real})
     if length(y) < 3
@@ -50,16 +58,16 @@ end
 """
     cubic_spline_coefficients(y::AbstractVector{<:Real}; h=1)
 
-Calculates the list of coefficients `a`, `b`, `c`, `d` for an interpolating spline.
+Calculates the list of coefficients `a`, `b`, `c`, `d` for an interpolating spline of `y[i]=y(x[i])`.
 
 The spline is defined as ``f(x) = g_i(x)`` on ``x[i] \\leq x \\leq x[i+1]`` where
 
 ``g_i(x) = a[i](x-x[i])^3 + b[i](x-x[i])^2 + c[i](x-x[i]) + d[i]``
 
 Uses the following boundary conditions
-- ``g_1(x[1]-h) = 1`` (i.e. the ``y``-intercept is ``(0,1)`` for uniform spaced `x=1:n`)
-- ``g_n(x[n]+h) = x[n]`` (i.e. repeated right end-point)
-- ``g_n''(x[n]+h) = 0`` (i.e. flat/no-curvature one spacing after end-point)
+- ``g_1(x[1]-h) = 1`` (i.e. the ``y``-intercept is ``(0,1)`` for uniform spaced `x=1:I`)
+- ``g_I(x[I]+h) = y[I]`` (i.e. repeated right end-point)
+- ``g_I''(x[I]+h) = 0`` (i.e. flat/no-curvature one spacing after end-point)
 """
 function cubic_spline_coefficients(y::AbstractVector{<:Real}; h=1)
     # Set up variables
@@ -242,10 +250,10 @@ Calculates radius `r` and center point `(p, q)` of the circle passing through th
 in the xy-plane.
 
 # Example
-```
+```julia
 r, (p, q) = three_point_circle((1,2), (2,1), (5,2))
-r, (p, q) == (√5, (3, 3))
-````
+(r, (p, q)) == (√5, (3, 3))
+```
 """
 function three_point_circle((a,f),(b,g),(c,h))
     fg = f-g
@@ -300,9 +308,24 @@ function breakpoint_model_coefficients(xs, ys, z)
     a, b, c = M \ ys
     return a, b, c
 end
+# TODO add an option to compute a cheaper but less accurate model
+# a = z; b = (1 - y[z]) / z ; c = y[z] / (R_max - z)
+# This fixes the model to the three points (0,1), (z, y[z]), and (R_max, 0)
 
+"""
+    breakpoint_model(a, b, c, z)
+
+Returns a function `x -> a + b*(min(x, z) - z) + c*(max(x, z) - z)`.
+"""
 breakpoint_model(a, b, c, z) = x -> a + b*(min(x, z) - z) + c*(max(x, z) - z)
 
+"""
+    breakpoint_error(xs, ys, z)
+
+Squared L2 error between the best breakpoint model (with breakpoint `z`) evaluated at `xs` and the data `ys`.
+
+See [`breakpoint_model`](@ref) and [`breakpoint_model_coefficients`](@ref).
+"""
 function breakpoint_error(xs, ys, z)
     a, b, c = breakpoint_model_coefficients(xs, ys, z)
     f = breakpoint_model(a, b, c, z)
@@ -310,6 +333,11 @@ function breakpoint_error(xs, ys, z)
     # equivalent to sum(((x, y),) -> (f(x) - y)^2, zip(xs, ys))
 end
 
+"""
+    best_breakpoint(xs, ys; breakpoints=xs)
+
+Breakpoint `z in breakpoints` that minimizes the [`breakpoint_error`](@ref).
+"""
 best_breakpoint(xs, ys; breakpoints=xs) = argmin(z -> breakpoint_error(xs, ys, z), breakpoints)
 
 """
