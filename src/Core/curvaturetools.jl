@@ -141,7 +141,11 @@ end
 
 Approximates the signed curvature of a function given evenly spaced samples.
 
-Uses [`d_dx`](@ref) and [`d2_dx2`](@ref) to approximate the first two derivatives.
+# Possible `method`s
+- `:finite_differences`: Approximates first and second derivative with 3rd order finite differences. See [`d_dx`](@ref) and [`d2_dx2`](@ref).
+- `:splines`: Curvature of a third order spline. See [`d_dx_and_d2_dx2_spline`](@ref).
+- `:circles`: Inverse radius of a circle through rolling three points. See [`circle_curvature`](@ref).
+- `:breakpoints`: WARNING does not compute a value that approximates the curvature of a continuous function. Computes the inverse least-squares error of `f.(eachindex(y); z)` and `y` for all `z in eachindex(y)` where `f(x; z) = a + b(min(x, z) - z) + c(max(x, z) - z)`. Useful if `y` looks like two lines. See [`breakpoint_curvature`](@ref).
 """
 function curvature(y::AbstractVector{<:Real}; method=:finite_differences, kwargs...)
     if method == :finite_differences
@@ -153,6 +157,8 @@ function curvature(y::AbstractVector{<:Real}; method=:finite_differences, kwargs
         return @. dy2_dx2 / (1 + dy_dx^2)^1.5
     elseif method == :circles
         return circle_curvature(y; h=1)
+    elseif method == :breakpoints
+        return breakpoint_curvature(y)
     else
         throw(ArgumentError("method $method not implemented"))
     end
@@ -166,6 +172,13 @@ Approximates the signed curvature of a function, scaled to the unit box ``[0,1]^
 Assumes the function is 1 at 0 and (after x dimension is scaled) 0 at 1.
 
 See [`curvature`](@ref).
+
+
+# Possible `method`s
+- `:finite_differences`: Approximates first and second derivative with 3rd order finite differences. See [`d_dx`](@ref) and [`d2_dx2`](@ref).
+- `:splines`: Curvature of a third order spline. See [`d_dx_and_d2_dx2_spline`](@ref).
+- `:circles`: Inverse radius of a circle through rolling three points. See [`circle_curvature`](@ref).
+- `:breakpoints`: WARNING does not compute a value that approximates the curvature of a continuous function. Computes the inverse least-squares error of `f.(eachindex(y); z)` and `y` for all `z in eachindex(y)` where `f(x; z) = a + b(min(x, z) - z) + c(max(x, z) - z)`. Useful if `y` looks like two lines. See [`breakpoint_curvature`](@ref).
 """
 function standard_curvature(y::AbstractVector{<:Real}; method=:finite_differences, kwargs...)
     Δx = 1/length(y)
@@ -183,6 +196,8 @@ function standard_curvature(y::AbstractVector{<:Real}; method=:finite_difference
         return @. dy2_dx2 / (1 + dy_dx^2)^1.5
     elseif method == :circles
         return circle_curvature(y / max(1,maximum(y)); h=Δx)
+    elseif method == :breakpoints
+        return breakpoint_curvature(y) # best breakpoint unaffected by scaling and stretching
     else
         throw(ArgumentError("method $method not implemented"))
     end
@@ -263,4 +278,52 @@ function signed_circle_curvature((a,f),(b,g),(c,h))
     r, _ = three_point_circle((a,f),(b,g),(c,h))
     sign = g > (f+h)/2 ? -1 : 1
     return sign / r
+end
+
+"""
+    breakpoint_model_coefficients(xs, ys, breakpoint)
+
+Least squares fit data ``(x_i, y_i)``
+
+``\\min_{a,b,c} 0.5\\sum_{i} (f(x_i; a,b,c) - y_i)^2``
+
+with the model
+
+``f(x; a,b,c) = a + b(\\min(x, z) - x) + c(\\max(x, z) - x)``
+
+for some fixed ``z``.
+"""
+function breakpoint_model_coefficients(xs, ys, z)
+    n = length(xs)
+    @assert n == length(ys)
+    M = hcat(ones(n), (min.(xs, z) .- z), (max.(xs, z) .- z))
+    a, b, c = M \ ys
+    return a, b, c
+end
+
+breakpoint_model(a, b, c, z) = x -> a + b*(min(x, z) - z) + c*(max(x, z) - z)
+
+function breakpoint_error(xs, ys, z)
+    a, b, c = breakpoint_model_coefficients(xs, ys, z)
+    f = breakpoint_model(a, b, c, z)
+    return norm2(@. f(xs) - ys)
+    # equivalent to sum(((x, y),) -> (f(x) - y)^2, zip(xs, ys))
+end
+
+best_breakpoint(xs, ys; breakpoints=xs) = argmin(z -> breakpoint_error(xs, ys, z), breakpoints)
+
+"""
+    breakpoint_curvature(y)
+
+This is a hacked way to fit the data `y` with a breakpoint model,
+which can be called by `k = standard_curvature(...; model=:breakpoints)`
+
+This lets us call `argmax(k)` to get the breakpoint that minimizes the model error.
+
+See [`breakpoint_model_coefficients`](@ref).
+"""
+function breakpoint_curvature(y)
+    x = eachindex(y)
+    errors = [breakpoint_error(x, y, z) for z in x]
+    return 1 ./ errors
 end

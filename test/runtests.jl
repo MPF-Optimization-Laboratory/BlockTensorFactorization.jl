@@ -894,6 +894,42 @@ end
 
     check_slice = 1:10
     @test isapprox(decomposition[check_slice], Y[check_slice]; rtol=0.01) # should be within 1% error
+
+    N = 33 # 1 plus a power of 2
+    R = 5
+    D = 2
+
+    # More constrained problem
+    matrices = [abs_randn(N, R) for _ in 1:D]
+    l1scale_cols!.(matrices)
+    Ydecomp = CPDecomposition(Tuple(matrices))#abs_randn
+    @assert all(check.(simplex_cols!, factors(Ydecomp)))
+    Y = array(Ydecomp)
+
+    scaleB_rescaleA! = ConstraintUpdate(0, l1scale_1slices! ∘ nonnegative!;
+        whats_rescaled=(x -> eachcol(factor(x, 1)))
+    )
+    nonnegativeB! = ConstraintUpdate(0, nonnegative!)
+    nonnegativeA! = ConstraintUpdate(1, nonnegative!)
+    #[l1scale_1slices! ∘ nonnegative!, nonnegative!]
+
+    options = (
+        rank=3,
+        momentum=true,
+        model=Tucker1,
+        tolerance=(1e-5),
+        converged=(GradientNNCone),
+        do_subblock_updates=false,
+        constrain_init=true,
+        constraints=[scaleB_rescaleA!, nonnegativeA!],
+        stats=[Iteration, ObjectiveValue, GradientNNCone, RelativeError],
+        maxiter=200
+    )
+
+    decomposition, stats, kwargs = multiscale_factorize(Y; options...)
+
+    check_slice = 1:10
+    @test isapprox(decomposition[check_slice], Y[check_slice]; rtol=0.02) # should be within 2% error
     end
 end
 
@@ -927,6 +963,13 @@ end
     @test MAPE(k_circles, k_true) < 0.03 # 3%
     @test MAPE(k_finite_differences, k_true) < 0.03 # 3%
 
+    # Break point method
+    ys = [13,10,5,4.5,4,3.6,3,2.5]; xs = [0,1,2,3,4,5,6,7]; z=2
+    a,b,c = BlockTensorFactorization.Core.breakpoint_model_coefficients(xs, ys, z)
+
+    @test isapprox([a,b,c], [5.2,-4.1,-0.5], rtol=0.01)
+
+    # Rank detect
     T = Tucker1((10, 10, 10), 3)
     Y = array(T)
     decomposition, stats, kwargs, final_rel_errors = rank_detect_factorize(Y; model=Tucker1, curvature_method=:splines)
@@ -938,10 +981,17 @@ end
     decomposition, stats, kwargs, final_rel_errors = rank_detect_factorize(Y; model=Tucker1, curvature_method=:finite_differences)
     @test kwargs[:rank] == 3
 
+    decomposition, stats, kwargs, final_rel_errors = rank_detect_factorize(Y; model=Tucker1, curvature_method=:breakpoints)
+    @test kwargs[:rank] == 3
+
     T = CPDecomposition((10, 11, 12), 4)
     Y = array(T)
-    decomposition, stats, kwargs, final_rel_errors = rank_detect_factorize(Y; model=CPDecomposition, curvature_method=:splines, online_rank_estimation=true)
-    @test kwargs[:rank] == 4
+    V = zeros(Int, 5)
+    for i in 1:5
+        decomposition, stats, kwargs, final_rel_errors = rank_detect_factorize(Y; model=CPDecomposition, curvature_method=:splines, online_rank_estimation=true, tolerance=0.01)
+        V[i] = kwargs[:rank]
+    end
+    @test count(x -> x == 4, V) ≥ 3 # should predict 4 most of the time
 end
 
 end

@@ -7,7 +7,7 @@ Selects the rank that maximizes the standard curvature of the Relative Error (as
 
 # Keywords
 - `online_rank_estimation`: `false`. Set to `true` to stop testing larger ranks after the first peak in curvature
-- `curvature_method`: `:splines`. Can also pick `:finite_differences` (faster but less accurate) or `circles` (fastest and smallest memory but more sensitive to results from `factorize`)
+- `curvature_method`: `:splines`. Can also pick `:finite_differences` (faster but less accurate) or `circles` (fastest and smallest memory but more sensitive to results from `factorize`). Set to `:breakpoints` to pick the rank `R` that minimizes least-squares error in the model `f(r) = a + b(min(r, R) - R) + c(max(r, R) - R)` and the errors.
 - `model`: `Tucker1`. Only rank detection with `Tucker1` and `CPDecomposition` is currently implemented
 - `max_rank`: `max_possible_rank(Y, model)`. Test ranks from `1` up to `max_rank`. Defaults to largest possible rank under the model
 - `rank`: `nothing`. If a rank is passed, rank detection is ignored and `factorize(Y; kwargs...)` is called
