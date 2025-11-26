@@ -1,6 +1,6 @@
 name = "BlockTensorFactorization"
 uuid = "07b766a1-0096-4e53-b687-1cd07becaccb"
-version = "0.3.0"
+version = "0.4.0"
 authors = ["Nicholas <njericha@math.ubc.ca>"]
 
 [workspace]
