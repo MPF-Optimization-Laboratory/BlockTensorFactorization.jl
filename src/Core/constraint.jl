@@ -75,7 +75,7 @@ end
 
 # Need to separate inner and outer into two lines
 # since (C.outer ∘ C.inner) would apply f=C.outer to the output of g=C.inner.
-# This is not nessesarily the mutated A.
+# This is not necessarily the mutated A.
 # For example, g = l1scale! would divide A by the 1-norm of A,
 # and return the 1-norm of A, not A itself.
 function (C::ComposedConstraint)(A::AbstractArray)
@@ -91,7 +91,7 @@ Base.:∘(f::AbstractConstraint, g::AbstractConstraint) = ComposedConstraint(f, 
 # function Base.:∘(f::AbstractConstraint, g::AbstractConstraint)
 #     # Need to separate f.apply and g.apply into two lines
 #     # since (f.apply ∘ g.apply) would apply f to the output of g.
-#     # This is not nessesarily the result of g.apply.
+#     # This is not necessarily the result of g.apply.
 #     # For example, g = l1scale! would divide X by the 1-norm of X,
 #     # and return the 1-norm of X, not X itself.
 #     function composition(X::AbstractArray)
@@ -119,7 +119,7 @@ Base.:∘(f::AbstractConstraint, g::AbstractConstraint) = ComposedConstraint(f, 
 #     g::Function
 # end
 
-# (F::BoolFunctionAnd)(x) = F.f(x) & F.g(x) # No short curcit to ensure any warnings are shown from both checks
+# (F::BoolFunctionAnd)(x) = F.f(x) & F.g(x) # No short circuit to ensure any warnings are shown from both checks
 
 # bool_function_and(f::Function, g::Function) = BoolFunctionAnd(f, g)
 
@@ -327,7 +327,7 @@ normalizations_to_whats_normalized = [
 # Generate the constraints
 
 """List of symbols of the built-in constraint functions."""
-const BUILT_IN_CONSTRAINTS = Symbol[] # const means constant type, not an unmutable
+const BUILT_IN_CONSTRAINTS = Symbol[] # const means constant type, not an immutable
 
 for (type, pattern) in constraint_types
     for c in constraint_set

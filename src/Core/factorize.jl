@@ -192,7 +192,7 @@ function default_kwargs(Y; kwargs...)
 	get!(kwargs, :constrain_output) do
 		isnothing(kwargs[:final_constraints]) ? false : true
 	end
-	# the rest of the constraint parsing is handled later, once the decomposition is initalized
+	# the rest of the constraint parsing is handled later, once the decomposition is initialized
 
 	# Stats
 	get!(kwargs, :stats) do

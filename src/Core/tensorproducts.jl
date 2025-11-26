@@ -56,7 +56,7 @@ function mtt(A::AbstractMatrix, B::AbstractArray)
     #Cmat = A * Bmat
     #C = reshape(Cmat, size(A, 1), sizeB[2:end]...)
 
-    # Slightly faster implimentation
+    # Slightly faster implementation
     C = zeros(size(A, 1), sizeB[2:end]...)
     Cmat = reshape(C, size(A, 1), prod(sizeB[2:end]))
     mul!(Cmat, A, Bmat)

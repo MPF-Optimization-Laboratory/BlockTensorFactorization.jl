@@ -1,5 +1,5 @@
 """
-Low level code defining the verious decomposition types like Tucker and CP
+Low level code defining the various decomposition types like Tucker and CP
 """
 
 """
@@ -378,7 +378,7 @@ contractions(_::Tucker1) = ((×₁),)
 rankof(T::Tucker) = map(x -> size(x, 2), matrix_factors(T))
 rankof(T::Tucker1) = size(core(T), 1)
 
-# Essentialy zero index tucker factors so the core is the 0th factor, and the nth factor
+# Essentially zero index tucker factors so the core is the 0th factor, and the nth factor
 # is the matrix factor in the nth dimension
 function factor(D::AbstractTucker, n::Integer)
     if n == 0

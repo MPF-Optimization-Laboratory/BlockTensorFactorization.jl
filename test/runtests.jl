@@ -248,7 +248,7 @@ const VERBOSE = true
         @test_broken check(c!, v) # Only nonnegativity is satisfied. Entries do not sum to 1
     end
 
-    @testset "Convertion" begin
+    @testset "Conversion" begin
         @test ProjectedNormalization(l1scale!) == l1normalize!
         @test ScaledNormalization(l1normalize!) == l1scale!
     end
@@ -343,7 +343,7 @@ end
     @test_throws ArgumentError Tucker((G, A)) # Can handle auto conversion to TuckerN in the future??
 
     G = Tucker1((10,11,12), 5);
-    Y = Tucker1((10,11,12), 5; init=abs_randn); # check if other initilizations work
+    Y = Tucker1((10,11,12), 5; init=abs_randn); # check if other initializations work
 
     @test isfrozen(G, 0) == false # the core is not frozen
     @test isfrozen(G, 1) == false # the matrix factor A is not frozen

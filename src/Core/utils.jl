@@ -148,7 +148,7 @@ function mat(A::AbstractArray, n::Integer)
     N = ndims(A)
     1 <= n && n <= N || throw(ArgumentError("n=$n is not a valid dimension to matricize"))
     dims = ((1:n-1)..., (n+1:N)...) # all axis, skipping n
-    return cat(eachslice(A; dims)...; dims=2) # TODO Idealy return a view/SubArray
+    return cat(eachslice(A; dims)...; dims=2) # TODO Ideally return a view/SubArray
 end
 
 #fullouter(v...) = reshape(kron(reverse(vec.(v))...),tuple(vcat(collect.(size.(v))...)...))
@@ -260,7 +260,7 @@ end
 """
     abs_randn(x...)
 
-Folded normal or more specificly the half-normal initialization.
+Folded normal or more specifically the half-normal initialization.
 """
 abs_randn(x...) = abs.(randn(x...))
 
