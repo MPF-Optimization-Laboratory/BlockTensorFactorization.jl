@@ -200,7 +200,11 @@ end
 # It only returns a Bool rather than a number, but simplex! checks
 # if the output of the "norm" function equals 1, which is converted
 # to a Boolean True. Is there some way to treat this constraint better?
-"""all(isnonnegative, x) && sum(x) ≈ 1"""
+"""
+    isnonnegative_sumtoone(x)
+
+Short for `all(isnonnegative, x) && sum(x) ≈ 1`.
+"""
 isnonnegative_sumtoone(x) = all(isnonnegative, x) && sum(x) ≈ 1
 
 """

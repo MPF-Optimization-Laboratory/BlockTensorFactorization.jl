@@ -102,9 +102,17 @@ Base.min(A::AbstractArray, x::Number) = min.(A, x)
 
 # ( (x-1) % 4 +1, (x-1) ÷ 4 % 3 + 1, (x-1) ÷ 4 ÷ 3 % 2 + 1)
 
-"""Like `getindex` but returns the compliment to the index or indices requested."""
 getnotindex(A, i::Int; view=false) = view ? (@view A[eachindex(A) .!= i]) : A[eachindex(A) .!= i]
 getnotindex(A, I; view=false) = view ? (@view A[eachindex(A) .∉ (I,)]) : A[eachindex(A) .∉ (I,)]
+
+docs = """    getnotindex(A, i::Int; view=false)
+    getnotindex(A, I; view=false)
+
+Like `getindex` but returns the compliment to the index or indices requested.
+"""
+
+@doc docs getnotindex
+# Want both methods to receive this documentation
 
 """
     eachfibre(A::AbstractArray; n::Integer, kwargs...)
@@ -145,7 +153,11 @@ end
 
 #fullouter(v...) = reshape(kron(reverse(vec.(v))...),tuple(vcat(collect.(size.(v))...)...))
 
-"""Makes a Tuple of length n filled with `false`."""
+"""
+    false_tuple(n::Integer)
+
+Makes a Tuple of length n filled with `false`.
+"""
 false_tuple(n::Integer) = Tuple(fill(false, n))
 
 """
@@ -293,7 +305,7 @@ end
 
 Geometric mean of a collection: `prod(v)^(1/length(v))`.
 
-If prod(v) is detected to be 0 or Inf, the safer (but slower) implementation `exp(mean(log.(v)))` is used.
+If `prod(v)` is detected to be `0` or `Inf`, the safer (but slower) implementation `exp(mean(log.(v)))` is used.
 """
 function geomean(v)
     p = prod(v)
@@ -317,7 +329,7 @@ Like `foldl`, but with a different folding operation between each argument.
 
 Example
 =======
-```
+```julia-repl
 julia> multifoldl((+,*,-), (2,3,4,5))
 15
 

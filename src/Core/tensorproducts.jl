@@ -150,12 +150,12 @@ arguments as matrices in a Tucker decomposition.
 
 Example
 -------
-```
+```julia
 tuckerproduct(G, (A, B, C)) == G ×₁ A ×₂ B ×₃ C
 tuckerproduct(G, (A, B, C); exclude=2) == G ×₁ A ×₃ C
 tuckerproduct(G, (A, B, C); exclude=2, excludes_missing=false) == G ×₁ A ×₃ C
 tuckerproduct(G, (A, C); exclude=2, excludes_missing=true) == G ×₁ A ×₃ C
-````
+```
 """
 function tuckerproduct(core, matrices; exclude=nothing, excludes_missing=false)
     N = ndims(core)

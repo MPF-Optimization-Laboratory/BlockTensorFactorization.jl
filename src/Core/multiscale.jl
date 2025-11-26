@@ -221,7 +221,11 @@ function scale_constraints(Y, scale; continuous_dims, kwargs...)
     return kwargs[:constraints], kwargs
 end
 
-"""Use the same initialization as factorize() to get the expanded set of constraints"""
+"""
+    expand_decomposition_constraints(Y, kwargs)
+
+Use the same initialization as [`factorize`](@ref) to get the expanded set of constraints.
+"""
 function expand_decomposition_constraints(Y, kwargs)
     kwargs_copy = deepcopy(kwargs) # Don't mess up anything since the following functions mutate kwargs
     kwargs_copy = default_kwargs(Y; kwargs_copy...) # TODO Is there some way to clean this up?

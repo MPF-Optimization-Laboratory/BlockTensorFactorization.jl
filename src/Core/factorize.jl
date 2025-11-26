@@ -30,6 +30,8 @@ function factorize(Y; kwargs...)
 end
 
 """
+    _factorize(Y; kwargs...)
+
 Inner level function once keyword arguments are set
 """
 function _factorize(Y; kwargs...)
@@ -56,6 +58,8 @@ function _factorize(Y; kwargs...)
 end
 
 """
+    initialize(Y, kwargs)
+
 Main initialization function for `factorize`.
 """
 function initialize(Y, kwargs)
@@ -79,6 +83,8 @@ function initialize(Y, kwargs)
 end
 
 """
+    postprocess!(decomposition, Y, previous, parameters, stats_data, updateparameters!, getstats, kwargs)
+
 Any post algorithm processing that needs to be done in `factorize`.
 """
 function postprocess!(decomposition, Y, previous, parameters, stats_data, updateparameters!, getstats, kwargs)
@@ -266,7 +272,11 @@ function finalconstrain!(decomposition; constraints, final_constraints, kwargs..
 	return NamedTuple(kwargs) # Freeze Dict into a NamedTuple
 end
 
-"""The decomposition model Y will be factored into"""
+"""
+    initialize_decomposition(Y; decomposition, model, rank, kwargs...)
+
+The decomposition model Y will be factored into
+"""
 function initialize_decomposition(Y; decomposition, model, rank, kwargs...)
 	kwargs = Dict{Symbol,Any}(kwargs)
 	# have to add these keyword back since it was extracted by make_update # TODO check if I can safely remove these
@@ -282,6 +292,8 @@ function initialize_decomposition(Y; decomposition, model, rank, kwargs...)
 end
 
 """
+    make_update!(decomposition, Y; momentum, constraints, constrain_init, group_updates_by_factor, do_subblock_updates, kwargs...)
+
 What one iteration of the algorithm looks like.
 One iteration is likely a full cycle through each block or factor of the model.
 """
@@ -341,7 +353,11 @@ function make_update!(decomposition, Y; momentum, constraints, constrain_init, g
 	return update!, kwargs
 end
 
-"""The stats that will be saved every iteration"""
+"""
+    initialize_stats(decomposition, Y, previous, parameters; stats, kwargs...)
+
+The stats that will be saved every iteration
+"""
 function initialize_stats(decomposition, Y, previous, parameters; stats, kwargs...)
 	stat_functions = [S(; kwargs...) for S in stats] # construct the AbstractStats
 	#@show stat_functions
@@ -354,7 +370,11 @@ function initialize_stats(decomposition, Y, previous, parameters; stats, kwargs.
 	return stats_data, getstats
 end
 
-"""Keep track of one or more previous iterates"""
+"""
+    initialize_previous(decomposition, Y; previous_iterates::Integer, kwargs...)
+
+Keep track of one or more previous iterates
+"""
 function initialize_previous(decomposition, Y; previous_iterates::Integer, kwargs...)
 	previous = [deepcopy(decomposition) for _ in 1:previous_iterates] # TODO check if this should be copy?
 	if previous_iterates == 0
@@ -372,7 +392,11 @@ function initialize_previous(decomposition, Y; previous_iterates::Integer, kwarg
 	end
 end
 
-"""update parameters needed for the update"""
+"""
+    initialize_parameters(decomposition, Y, previous; momentum::Bool, random_order, recursive_random_order, kwargs...)
+
+update parameters needed for the update
+"""
 function initialize_parameters(decomposition, Y, previous; momentum::Bool, random_order, recursive_random_order, kwargs...)
 	# parameters for the update step are symbol => value pairs
 	# they are held in a dictionary since we may mutate these for ex. the stepsize

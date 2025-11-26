@@ -106,10 +106,12 @@ of the decomposition.
 
 Example
 -------
+```julia
 (op1, op2) = contractions(D)
 (A, B, C) = factors(D)
 
-array(D) == (A op1 B) op2 C
+array(D) == op2(op1(A, B), C)
+```
 """
 contractions(D::AbstractDecomposition) = D.contractions
 
