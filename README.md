@@ -9,13 +9,28 @@
 
 BlockTensorFactorization.jl is a package to factorize tensors. The main feature is its flexibility at decomposing input tensors according to many common tensor models (ex. CP, Tucker) with a number of constraints (ex. nonnegative, simplex), while also supporting user-defined models, constraints, and optimization updates.
 
+This is a registered Julia package and can be installed with
+
+```
+julia> ] add BlockTensorFactorization
+```
+
+from the REPL, or
+
+```
+using Pkg
+Pkg.add("BlockTensorFactorization")
+```
+
+within Julia.
+
 # Citation
 
 If you find this package useful in anyway, please cite this repository with the following information.
 
 ```tex
 @misc{richardson_blocktensorfactorization_2025,
-    title = {BlockTensorFactorization.jl v0.3.0},
+    title = {BlockTensorFactorization.jl v0.4.0},
 	url = {https://github.com/MPF-Optimization-Laboratory/BlockTensorFactorization.jl},
 	author = {Richardson, Nicholas and Marusenko, Noah and Friedlander, Michael P.},
 	year = {2025},
