@@ -1,0 +1,38 @@
+name: Documentation
+on:
+  push: # see https://github.com/orgs/community/discussions/26276#discussioncomment-4617932
+    branches:
+      - main
+    paths-ignore:
+    - README.md
+    - .gitignore
+    - LICENSE.md
+    - 'docs/src/bench/**' # avoid feedback loop since benchmark modifies files in this path
+    tags: [v*] # also want documentation for tags
+  pull_request:
+    branches:
+      - main
+    paths-ignore:
+    - README.md
+    - .gitignore
+    - LICENSE.md
+    - 'docs/src/bench/**'
+jobs:
+  docs:
+    #needs: benchmark # So it can build the page with the results
+    name: Documentation
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: julia-actions/setup-julia@v2
+        with:
+          version: '1.12'
+      - run: |
+          julia --project=docs -e '
+            import Pkg;
+            Pkg.develop(Pkg.PackageSpec(path=pwd()))
+            Pkg.instantiate()'
+      - run: julia --project=docs docs/make.jl #Pkg.add("Documenter"); using Pkg
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          DOCUMENTER_KEY: ${{ secrets.DOCUMENTER_KEY }}
