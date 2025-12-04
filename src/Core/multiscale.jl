@@ -473,7 +473,7 @@ function initialize_scales(Y; continuous_dims, kwargs...)
 
     S_min = Int(log2(I_min - 1))
 
-    kwargs[:scales] = (2^(S_min - s) for s in 0:S_min)
+    kwargs[:scales] = (2^(S_min - s) for s in 1:S_min)
 
     return kwargs[:scales], kwargs
 end
