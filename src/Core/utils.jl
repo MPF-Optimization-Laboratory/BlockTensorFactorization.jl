@@ -392,7 +392,7 @@ Diagonal_col_norm(X) = Diagonal(norm.(eachcol(X)))
 """
     reshape_ndims(x, n)
 
-Reshapes `x` to a higher order array with `n` dimensions.
+Reshapes `x` to an array with `n` dimensions.
 
 When n > ndims(x), extra dimensions are prepended. Otherwise, trailing dimensions are collapsed.
 

@@ -66,7 +66,7 @@ end
 
 # Additional n-mode products, generated programmatically
 
-# products = (×₂, ×₃, ×₄, ×₅, ×₆, ×₇, ×₈, ×₉)
+# products = (×₁, ×₂, ×₃, ×₄, ×₅, ×₆, ×₇, ×₈, ×₉)
 modes = ("₁", "₂", "₃", "₄", "₅", "₆", "₇", "₈", "₉")
 
 for (n, mode) in enumerate(modes)
@@ -196,12 +196,14 @@ function _gettuckerindex(core, matrices, I)
 end
 
 """
-    outer_product(vectors)
-    outer_product(vectors...)
+    outer_product(arrays)
+    outer_product(arrays...)
 
-Outer product of a collection of vectors.
+Outer product array of a collection of arrays.
 
-For example,
+Examples
+========
+If `u`, `v` and `w` are vectors,
 
 `outer_product(u, v) == u * v'`
 
@@ -209,10 +211,23 @@ and
 
 `outer_product(u, v, w)[i, j, k] == u[i] * v[j] * w[k]`.
 
-Returned array will have same number dimensions as the length of the collection.
+For two arrays `A` and `B` with 2 and 3 dimensions,
+
+`outer_product(A, B)[i,j,k,l,m] == A[i,j] * B[k,l,m]`.
 """
-outer_product(vectors) = reshape(kron(reverse(vectors)...),length.(vectors))
 outer_product(vectors...) = outer_product(vectors)
+function outer_product(arrays)
+    if all(x -> ndims(x) == 1, arrays)
+        return _outer_product_vectors(arrays)
+    else
+        return _outer_product_general(arrays)
+    end
+end
+
+# Only a single call to reshape is needed for a list of vectors
+_outer_product_vectors(vectors) = reshape(kron(reverse(vectors)...), length.(vectors))
+# Otherwise, reshape each array to their own dimensions, and use broadcasting to multiply
+_outer_product_general(arrays) = reduce(.*, reshape_ndims.(arrays, cumsum(ndims.(arrays))))
 
 """
     cpproduct((A, B, C, ...))
