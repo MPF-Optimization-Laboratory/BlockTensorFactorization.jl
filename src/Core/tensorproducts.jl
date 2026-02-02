@@ -198,6 +198,7 @@ end
 """
     outer_product(arrays)
     outer_product(arrays...)
+    A ⊗ B
 
 Outer product array of a collection of arrays.
 
@@ -223,6 +224,7 @@ function outer_product(arrays)
         return _outer_product_general(arrays)
     end
 end
+const ⊗ = outer_product
 
 # Only a single call to reshape is needed for a list of vectors
 _outer_product_vectors(vectors) = reshape(kron(reverse(vectors)...), length.(vectors))
