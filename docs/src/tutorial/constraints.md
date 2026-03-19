@@ -244,7 +244,7 @@ You can manually define the [`ConstraintUpdate`](@ref) that gets applied as part
 As an example, if we are performing CP decomposition on an order 3 tensor, the unconstrained block optimization would look something like this.
 
 ```julia
-BlockUpdate(
+BlockedUpdate(
     GradientDescent(1, gradient, step)
     GradientDescent(2, gradient, step)
     GradientDescent(3, gradient, step)
@@ -260,7 +260,7 @@ X, stats, kwargs = factorize(Y; model=CPDecomposition, rank=5, constraints=[Cons
 This would result in the following block update.
 
 ```julia
-BlockUpdate(
+BlockedUpdate(
     GradientDescent(1, gradient, step)
     GradientDescent(2, gradient, step)
     Projection(2, simplex!)
