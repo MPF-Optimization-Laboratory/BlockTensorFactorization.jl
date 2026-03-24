@@ -66,7 +66,7 @@ X, stats, kwargs = factorize(Y; model=Tucker1, rank=5)
 
 ## Extracting factors
 
-The main output, `X`, is of type `model` (`Tucker1`). We can call `factors` to see what the decomposed factors are. Or you can call `factor(X,n)` to just extract the `n`th factor. This this case, there are only two factors; the order-3 core (0th factor) `G` and the matrix (1st factor) `A`. The following would all be valid ways to extract these factors.
+The main output, `X`, is of type `model` (`Tucker1` in the above case). We can call `factors` to see what the decomposed factors are. Or you can call `factor(X,n)` to just extract the `n`th factor. Here, there are only two factors; the order-3 core (0th factor) `G` and the matrix (1st factor) `A`. The following would all be valid ways to extract these factors.
 
 ```julia
 typeof(X) == Tucker1{Float64, 3}
