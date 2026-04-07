@@ -256,20 +256,34 @@ r, (p, q) = three_point_circle((1,2), (2,1), (5,2))
 ```
 """
 function three_point_circle((a,f),(b,g),(c,h))
+    # fg = f-g
+    # gh = g-h
+    # hf = h-f
+    # ab = a-b
+    # bc = b-c
+    # ca = c-a
+    # a2 = a^2
+    # b2 = b^2
+    # c2 = c^2
+    # f2 = f^2
+    # g2 = g^2
+    # h2 = h^2
+    # p = (a2*gh + b2*hf + c2*fg - gh*hf*fg) / (a*gh + b*hf + c*fg) / 2
+    # q = (f2*bc + g2*ca + h2*ab - bc*ca*ab) / (f*bc + g*ca + h*ab) / 2
     fg = f-g
     gh = g-h
     hf = h-f
     ab = a-b
     bc = b-c
     ca = c-a
-    a2 = a^2
-    b2 = b^2
-    c2 = c^2
-    f2 = f^2
-    g2 = g^2
-    h2 = h^2
-    p = (a2*gh + b2*hf + c2*fg - gh*hf*fg) / (a*gh + b*hf + c*fg) / 2
-    q = (f2*bc + g2*ca + h2*ab - bc*ca*ab) / (f*bc + g*ca + h*ab) / 2
+    agh = a*gh
+    bhf = b*hf
+    cfg = c*fg
+    fbc = f*bc
+    gca = g*ca
+    hab = h*ab
+    p = (a*agh + b*bhf + c*cfg - gh*hf*fg) / (agh + bhf + cfg) / 2
+    q = (f*fbc + g*gca + h*hab - bc*ca*ab) / (fbc + gca + hab) / 2
     r = sqrt((a-p)^2 + (f-q)^2)
     return r, (p, q)
 end
