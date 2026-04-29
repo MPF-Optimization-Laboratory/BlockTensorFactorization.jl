@@ -177,7 +177,7 @@ l2norm(x::AbstractArray) = sqrt(norm2(x))
 function l2project!(x::AbstractArray)
     if iszero(x)
         @warn "Input $x is zero, picking a closest element"
-        x .= ones(size(x)) ./ sqrt(length(A))
+        x .= ones(size(x)) ./ sqrt(length(x))
         return
     end
 
@@ -188,7 +188,7 @@ l1norm(x::AbstractArray) = mapreduce(abs, +, x)
 function l1project!(x::AbstractArray)
     if iszero(x)
         @warn "Input $x is zero, picking a closest element"
-        x .= ones(size(x)) ./ length(A)
+        x .= ones(size(x)) ./ length(x)
         return
     end
 

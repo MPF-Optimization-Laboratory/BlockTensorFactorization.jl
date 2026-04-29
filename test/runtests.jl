@@ -150,6 +150,12 @@ const VERBOSE = true
         l1scale_average12slices!(A)
         @test all(sum(A; dims=(2,3)) .≈ 5)
         @test check(l1scale_average12slices!, A)
+
+        v = collect(1:6) / 3
+        u = copy(v)
+        ProjectedNormalization(l1scale!)(v)
+        u .-= 4/3; nonnegative!(u)
+        @test v ≈ u
     end
 
     @testset "L2" begin
