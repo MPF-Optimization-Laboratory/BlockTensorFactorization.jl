@@ -3,6 +3,7 @@ module Core
 # Dependencies
 using Random: randn, rand, seed!, shuffle
 using LinearAlgebra: ⋅, opnorm, Symmetric, mul!, Diagonal, I, norm, Tridiagonal
+using Statistics: mean
 using DataFrames: DataFrame, nrow
 
 const id = I # often use `I` for a dimension size, e.g. i ∈ 1:I, so here's a way to get the identity matrix

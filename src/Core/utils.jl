@@ -305,7 +305,7 @@ end
 
 Geometric mean of a collection: `prod(v)^(1/length(v))`.
 
-If `prod(v)` is detected to be `0` or `Inf`, the safer (but slower) implementation `exp(mean(log.(v)))` is used.
+If `prod(v)` is detected to be `0` or `Inf`, the numerically safer (but slower) implementation `exp(mean(log.(v)))` is used.
 """
 function geomean(v)
     p = prod(v)
