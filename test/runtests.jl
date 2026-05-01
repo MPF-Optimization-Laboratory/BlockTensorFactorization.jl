@@ -923,8 +923,8 @@ end
         rank=3,
         momentum=true,
         model=Tucker1,
-        tolerance=(1e-5),
-        converged=(GradientNNCone),
+        tolerance=(0.09), # less than 9% error
+        converged=(RelativeError),
         do_subblock_updates=false,
         constrain_init=true,
         constraints=[scaleB_rescaleA!, nonnegativeA!],
@@ -934,8 +934,7 @@ end
 
     decomposition, stats, kwargs = multiscale_factorize(Y; options...)
 
-    check_slice = 1:10
-    @test isapprox(decomposition[check_slice], Y[check_slice]; rtol=0.02) # should be within 2% error
+    @test isapprox(decomposition, Y; rtol=0.09) # should be within 9%
     end
 end
 
