@@ -198,3 +198,14 @@ function (S::DisplayDecomposition)(X, _, _, parameters, _)
     display(X)
     return nothing
 end
+
+"""
+Stats that use the previous in addition to current iterate.
+These need to be initialized as Inf rather than 0 in the first iterate so we don't
+treat them as converged immediately.
+"""
+const STATS_REQUIRING_PREVIOUS = Type{<:AbstractStat}[
+    ObjectiveRatio,
+    IterateNormDiff,
+    IterateRelativeDiff,
+]

@@ -367,6 +367,10 @@ function initialize_stats(decomposition, Y, previous, parameters; stats, kwargs.
 
 	stats_data = DataFrame((Symbol(S) => [v] for (S,v) in zip(stats, getstats(decomposition, Y, previous, parameters, DataFrame())))...)
 
+	# Set any stats that use the previous iterate to Inf, rather than 0, so we don't
+	# treat them as immediately converged (See issue #4)
+	stats_data[begin, stats .∈ (STATS_REQUIRING_PREVIOUS,)] .= Inf
+
 	return stats_data, getstats
 end
 

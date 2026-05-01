@@ -691,6 +691,16 @@ end
         Y = CPDecomposition((10,11,12), 3)
         Y = array(Y)
         decomposition, stats_data = fact(Y; model=CPDecomposition, rank=3, maxiter=2, do_subblock_updates=true)
+
+        # Quick test for stats requiring the previous iterate (see issue #4)
+        Y = CPDecomposition((10,11,12), 3)
+        Y = array(Y)
+        _, stats, _ = fact(Y; model=CPDecomposition, rank=3, maxiter=2, stats=[ObjectiveRatio,RelativeError,IterateNormDiff])
+
+        @test isinf(stats[begin, :ObjectiveRatio])
+        @test isinf(stats[begin, :IterateNormDiff])
+        @test stats[end, :Iteration] == 2
+
     end
 
     @testset "Tucker1Factorization" begin
