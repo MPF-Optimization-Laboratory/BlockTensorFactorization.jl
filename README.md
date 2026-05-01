@@ -29,11 +29,11 @@ within Julia.
 If you find this package useful in anyway, please cite this repository with the following information.
 
 ```tex
-@misc{richardson_blocktensorfactorization_2025,
-    title = {BlockTensorFactorization.jl v0.4.0},
+@misc{richardson_blocktensorfactorization_2026,
+    title = {BlockTensorFactorization.jl v0.4.1},
 	url = {https://github.com/MPF-Optimization-Laboratory/BlockTensorFactorization.jl},
 	author = {Richardson, Nicholas and Marusenko, Noah and Friedlander, Michael P.},
-	year = {2025},
+	year = {2026},
     note = {GitHub Repository},
 }
 ```
