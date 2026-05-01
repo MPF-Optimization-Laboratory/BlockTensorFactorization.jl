@@ -197,7 +197,7 @@ end
 function Base.show(io::IO, mime::MIME"text/plain", X::AbstractTucker)
     summary(io, X); print(io, " of rank ", rankof(X))
     for (n, f) in zip(eachfactorindex(X), factors(X))
-        println(io, "\nFactor ", n, ":")
+        println(io, "\n\nFactor ", n, ":")
         show(io, mime, f); flush(io)
     end
 end
