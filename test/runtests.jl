@@ -901,6 +901,8 @@ end
     check_slice = 1:10
     @test isapprox(decomposition[check_slice], Y[check_slice]; rtol=0.01) # should be within 1% error
 
+    multiscale_factorize(Y; decomposition=Tucker1((3, 5, 5), 1)) # should not error, i.e. use a coarse decomposition to initialize the coarsest scale
+
     N = 33 # 1 plus a power of 2
     R = 5
     D = 2
