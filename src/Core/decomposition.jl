@@ -152,7 +152,7 @@ Converts `factors` into a decomposition of type `T`.
 
 Can pass necessary arguments to build the decomposition as keywords
 """
-function build_decomposition(::Type{T}, factors; kwargs...)
+function build_decomposition(::Type{T}, factors; kwargs...) where {T <: AbstractDecomposition}
     throw("Do not know how to convert $(typeof(factors)) to a decomposition with type $T.")
 end
 

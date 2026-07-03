@@ -124,10 +124,12 @@ end
 #--------Manual Gradient--------#
 
 function make_gradient(D::AbstractDecomposition, n::Integer, Y::AbstractArray; objective::AbstractObjective, kwargs...)
-    error("Gradient not implemented for ", typeof(D), " with ", typeof(objective), " objective")
+    # error("Gradient not implemented for ", typeof(D), " with ", typeof(objective), " objective")
     
+    decomposition_type = typeof(D)
+
     function f(factors) # can only auto-diff arrays, tuples, and tuples of arrays
-        decomposition = build_decomposition(typeof(D), factors)
+        decomposition = build_decomposition(decomposition_type, factors)
         return objective(decomposition, Y) # converted tuple of arrays to a decomposition type
     end
 
@@ -136,7 +138,7 @@ function make_gradient(D::AbstractDecomposition, n::Integer, Y::AbstractArray; o
                                       #rather than a new one for each factor n
     factor_n = eachfactorindex(X)[n]
 
-    function ∇f_n(X::typeof(D); kwargs...)
+    function ∇f_n(X; kwargs...)
         G = gradient(compiled_f_tape, factors(X))
         # return G[n] # the nth factor may not be the nth element! e.g. 0th factor for a tucker1
         return G[factor_n]
