@@ -65,7 +65,6 @@ the full array.
 """
 array(D::AbstractDecomposition) = Array(D)::AbstractArray
 
-
 """
     factors(D::AbstractDecomposition)
 
@@ -146,6 +145,17 @@ Examples
 """
 rankof(D::AbstractDecomposition) = size.(factors(D))
 
+"""
+    build_decomposition(T, factors; kwargs...)
+
+Converts `factors` into a decomposition of type `T`.
+
+Can pass necessary arguments to build the decomposition as keywords
+"""
+function build_decomposition(::Type{T}, factors; kwargs...)
+    throw("Do not know how to convert $(typeof(factors)) to a decomposition with type $T.")
+end
+
 """Default initialization function to use when creating a random decomposition."""
 const DEFAULT_INIT = randn
 
@@ -165,6 +175,10 @@ array(G::GenericDecomposition) = multifoldl(contractions(G), factors(G))
 factors(G::GenericDecomposition) = G.factors
 contractions(G::GenericDecomposition) = G.contractions
 frozen(G::GenericDecomposition) = G.frozen
+function build_decomposition(::Type{T}, factors; contractions, frozen=false_tuple(length(factors)), kwargs...) where {T <: GenericDecomposition}
+    constructor = hasproperty(T, :name) ? T.name.wrapper : T # strip concrete type info
+    return constructor(factors, contractions, frozen)::T # result should still be the concrete type we want
+end
 
 struct SingletonDecomposition{T, N} <: AbstractDecomposition{T, N}
     factors::Tuple{AbstractArray{T}}
@@ -200,6 +214,11 @@ function Base.show(io::IO, mime::MIME"text/plain", X::AbstractTucker)
         println(io, "\n\nFactor ", n, ":")
         show(io, mime, f); flush(io)
     end
+end
+
+function build_decomposition(::Type{T}, factors; kwargs...) where {T <: AbstractTucker}
+    constructor = hasproperty(T, :name) ? T.name.wrapper : T # strip concrete type info
+    return constructor(factors)::T # result should still be the concrete type we want
 end
 
 struct Tucker{T, N} <: AbstractTucker{T, N}
@@ -298,6 +317,7 @@ See [`×₁`](@ref) and [`mtt`](@ref).
 function Tucker1(factors::Tuple{<:AbstractArray{T}, <:AbstractMatrix{T}}, frozen=false_tuple(2)) where T
     return Tucker1{T, ndims(factors[1])}(factors, frozen)
 end
+
 
 # TODO use some meta programming to create TuckerN types
 

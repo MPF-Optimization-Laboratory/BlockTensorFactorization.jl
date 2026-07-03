@@ -5,7 +5,7 @@ using Random: randn, rand, seed!, shuffle
 using LinearAlgebra: ⋅, opnorm, Symmetric, mul!, Diagonal, I, norm, Tridiagonal
 using Statistics: mean
 using DataFrames: DataFrame, nrow
-using ReverseDiff: gradient!, GradientTape, compile
+using ReverseDiff: gradient!, gradient, GradientTape, compile
 
 const id = I # often use `I` for a dimension size, e.g. i ∈ 1:I, so here's a way to get the identity matrix
 
@@ -31,7 +31,7 @@ export ⊗, ⊙
 
 # Low level types and interface
 include("./decomposition.jl")
-export array, contractions, core, eachfactorindex, eachrank1term, factor, factors, frozen, isfrozen, matrix_factor, matrix_factors, nfactors, rankof
+export array, build_decomposition, contractions, core, eachfactorindex, eachrank1term, factor, factors, frozen, isfrozen, matrix_factor, matrix_factors, nfactors, rankof
 export AbstractDecomposition
 export GenericDecomposition, SingletonDecomposition
 export AbstractTucker, Tucker, Tucker1, CPDecomposition
