@@ -297,7 +297,7 @@ end
 What one iteration of the algorithm looks like.
 One iteration is likely a full cycle through each block or factor of the model.
 """
-function make_update!(decomposition, Y; momentum, constraints, constrain_init, group_updates_by_factor, do_subblock_updates, kwargs...)
+function make_update!(decomposition, Y; momentum, constraints, constrain_init, group_updates_by_factor, do_subblock_updates, objective, kwargs...)
 	ns = eachfactorindex(decomposition)
 
 	kwargs = Dict{Symbol,Any}(kwargs)
@@ -306,16 +306,17 @@ function make_update!(decomposition, Y; momentum, constraints, constrain_init, g
 	kwargs[:constraints] = constraints
 	kwargs[:constrain_init] = constrain_init
 	kwargs[:group_updates_by_factor] = group_updates_by_factor
+	kwargs[:objective] = objective
 
-	kwargs[:gradients] = [make_gradient(decomposition, n, Y; kwargs...) for n in ns]
+	kwargs[:gradients] = [make_gradient(decomposition, n, Y, objective; kwargs...) for n in ns]
 
 	update! = nothing #ensure scope of update outside the following if block
 	if do_subblock_updates
-		kwargs[:steps] = [LipschitzStep(make_block_lipschitz(decomposition, n, Y; kwargs...)) for n in ns] # TODO avoid hard coded lipschitz step
+		kwargs[:steps] = [LipschitzStep(make_block_lipschitz(decomposition, n, Y, objective; kwargs...)) for n in ns] # TODO avoid hard coded lipschitz step
 		kwargs[:combines] = [make_blockGD_combines(decomposition, n, Y; kwargs...) for n in ns]
 		update! = BlockedUpdate((BlockGradientDescent(n, g, s, c) for (n, g, s, c) in zip(ns, kwargs[:gradients], kwargs[:steps], kwargs[:combines]))...)
 	else
-		kwargs[:steps] = [LipschitzStep(make_lipschitz(decomposition, n, Y; kwargs...)) for n in ns] # TODO avoid hard coded lipschitz step
+		kwargs[:steps] = [LipschitzStep(make_lipschitz(decomposition, n, Y, objective; kwargs...)) for n in ns] # TODO avoid hard coded lipschitz step
 		update! = BlockedUpdate((GradientDescent(n, g, s) for (n, g, s) in zip(ns, kwargs[:gradients], kwargs[:steps]))...)
 	end
 

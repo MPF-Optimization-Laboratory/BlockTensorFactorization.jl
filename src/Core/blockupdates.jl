@@ -217,7 +217,7 @@ end
 
 # TODO I think we don't need to specialize objective::L2, but I think these combines will only work for AbstractTucker
 
-function make_blockGD_combines(T::Tucker1, n::Integer, Y::AbstractArray; objective::L2, kwargs...)
+function make_blockGD_combines(T::Tucker1, n::Integer, Y::AbstractArray; kwargs...)
     if n==0 # the core is the zeroth factor
         combine0(grad, step) = grad ×₁ step # need to multiply grad (a tensor) by the Lipschitz matrix
         return combine0
@@ -231,7 +231,7 @@ function make_blockGD_combines(T::Tucker1, n::Integer, Y::AbstractArray; objecti
     end
 end
 
-function make_blockGD_combines(T::Tucker, n::Integer, Y::AbstractArray; objective::L2, kwargs...)
+function make_blockGD_combines(T::Tucker, n::Integer, Y::AbstractArray; kwargs...)
     N = ndims(T)
     if n==0 # the core is the zeroth factor
         combine_core(grad, step) = tuckerproduct(grad, step) # need to multiply grad (a tensor) by each Lipschitz matrix
@@ -246,7 +246,7 @@ function make_blockGD_combines(T::Tucker, n::Integer, Y::AbstractArray; objectiv
     end
 end
 
-function make_blockGD_combines(T::CPDecomposition, n::Integer, Y::AbstractArray; objective::L2, kwargs...)
+function make_blockGD_combines(T::CPDecomposition, n::Integer, Y::AbstractArray; kwargs...)
     N = ndims(T)
     if n in 1:N # the matrix is the zeroth factor
         combine_matrix(grad, step) = grad * step # need right matrix multiplication

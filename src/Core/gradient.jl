@@ -6,7 +6,7 @@ Calculates the gradients, and Lipschitz constants for arbitrary objectives
 
 # TODO have these be functions that act on decompositions more generally
 
-function make_lipschitz(T::Tucker1, n::Integer, Y::AbstractArray; objective::L2, kwargs...)
+function make_lipschitz(T::Tucker1, n::Integer, Y::AbstractArray, objective::L2; kwargs...)
     if n==0 # the core is the zeroth factor
         function lipschitz0(T::Tucker1; kwargs...)
             A = matrix_factor(T, 1)
@@ -26,7 +26,7 @@ function make_lipschitz(T::Tucker1, n::Integer, Y::AbstractArray; objective::L2,
     end
 end
 
-function make_lipschitz(T::Tucker, n::Integer, Y::AbstractArray; objective::L2, kwargs...)
+function make_lipschitz(T::Tucker, n::Integer, Y::AbstractArray, objective::L2; kwargs...)
     N = ndims(T)
     if n==0 # the core is the zeroth factor
         function lipschitz_core(T::AbstractTucker; kwargs...)
@@ -50,7 +50,7 @@ function make_lipschitz(T::Tucker, n::Integer, Y::AbstractArray; objective::L2, 
     end
 end
 
-function make_lipschitz(T::CPDecomposition, n::Integer, Y::AbstractArray; objective::L2, kwargs...)
+function make_lipschitz(T::CPDecomposition, n::Integer, Y::AbstractArray, objective::L2; kwargs...)
     N = ndims(T)
     if n in 1:N # the matrix is the zeroth factor
         function lipschitz_matrix(T::AbstractTucker; kwargs...)
@@ -65,7 +65,7 @@ function make_lipschitz(T::CPDecomposition, n::Integer, Y::AbstractArray; object
     end
 end
 
-function make_block_lipschitz(T::Tucker1, n::Integer, Y::AbstractArray; objective::L2, kwargs...)
+function make_block_lipschitz(T::Tucker1, n::Integer, Y::AbstractArray, objective::L2; kwargs...)
     if n==0 # the core is the zeroth factor
         function lipschitz0(T::Tucker1; kwargs...)
             A = matrix_factor(T, 1)
@@ -85,7 +85,7 @@ function make_block_lipschitz(T::Tucker1, n::Integer, Y::AbstractArray; objectiv
     end
 end
 
-function make_block_lipschitz(T::CPDecomposition, n::Integer, Y::AbstractArray; objective::L2, kwargs...)
+function make_block_lipschitz(T::CPDecomposition, n::Integer, Y::AbstractArray, objective::L2; kwargs...)
     N = ndims(T)
     if n in 1:N # the matrix is the zeroth factor
         function lipschitz_matrix(T::AbstractTucker; kwargs...)
@@ -100,7 +100,7 @@ function make_block_lipschitz(T::CPDecomposition, n::Integer, Y::AbstractArray; 
     end
 end
 
-function make_block_lipschitz(T::Tucker, n::Integer, Y::AbstractArray; objective::L2, kwargs...)
+function make_block_lipschitz(T::Tucker, n::Integer, Y::AbstractArray, objective::L2; kwargs...)
     N = ndims(T)
     if n==0 # the core is the zeroth factor
         function lipschitz_core(T::AbstractTucker; kwargs...)
@@ -123,7 +123,7 @@ end
 
 #--------Manual Gradient--------#
 
-function make_gradient(D::AbstractDecomposition, n::Integer, Y::AbstractArray; objective::AbstractObjective, kwargs...)
+function make_gradient(D::AbstractDecomposition, n::Integer, Y::AbstractArray, objective::AbstractObjective; kwargs...)
     # error("Gradient not implemented for ", typeof(D), " with ", typeof(objective), " objective")
     
     decomposition_type = typeof(D)
@@ -149,7 +149,7 @@ end
 
 # Using this pattern of inputs so that gradients for a generic decomposition could be calculated
 # with auto diff by looking at the gradient of the function objective(D, Y) with respect to the nth factor in D
-function make_gradient(T::Tucker1, n::Integer, Y::AbstractArray; objective::L2, kwargs...)
+function make_gradient(T::Tucker1, n::Integer, Y::AbstractArray, objective::L2; kwargs...)
     if n==0 # the core is the zeroth factor
         function gradient0(X::Tucker1; kwargs...)
             (B, A) = factors(X)
@@ -173,7 +173,7 @@ function make_gradient(T::Tucker1, n::Integer, Y::AbstractArray; objective::L2, 
     end
 end
 
-function make_gradient(T::Tucker, n::Integer, Y::AbstractArray; objective::L2, kwargs...)
+function make_gradient(T::Tucker, n::Integer, Y::AbstractArray, objective::L2; kwargs...)
     N = ndims(T)
     if n==0 # the core is the zeroth factor
         function gradient_core(X::AbstractTucker; kwargs...)
@@ -202,7 +202,7 @@ function make_gradient(T::Tucker, n::Integer, Y::AbstractArray; objective::L2, k
     end
 end
 
-function make_gradient(T::CPDecomposition, n::Integer, Y::AbstractArray; objective::L2, kwargs...)
+function make_gradient(T::CPDecomposition, n::Integer, Y::AbstractArray, objective::L2; kwargs...)
     N = ndims(T)
     if n in 1:N # the matrix factors start at m=1
         function gradient_matrix(X::AbstractTucker; kwargs...)
