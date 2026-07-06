@@ -307,6 +307,16 @@ end
 
 end
 
+@testset "AbstractObjective" begin
+    D = CPDecomposition((3,3,3), 1)
+    Y = randn(3,3,3)
+
+    a = norm(D - Y)^2
+    b = L2()(D, Y)
+    c = Lp(2)(D, Y)
+    @test allequal((a, b, c))
+end
+
 @testset "AbstractDecomposition" begin
     A = randn(3,3);
     B = randn(4,3);
@@ -1009,6 +1019,14 @@ end
         V[i] = kwargs[:rank]
     end
     @test count(x -> x == 4, V) ≥ 3 # should predict 4 most of the time
+end
+
+@testset "AutoDiff" begin
+    objective = Lp(2)
+    D = CPDecomposition((3,3,3),1)
+    Y = random(3,3,3)
+    objective(D, Y)
+
 end
 
 end
