@@ -38,7 +38,7 @@ export AbstractTucker, Tucker, Tucker1, CPDecomposition
 
 include("./objective.jl")
 export AbstractObjective
-export L2, Lp
+export L1, L2, Lp
 
 include("./factormatching.jl")
 export match_cols!, match_rows!, match_slices!

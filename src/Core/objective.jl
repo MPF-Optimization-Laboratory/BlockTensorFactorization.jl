@@ -32,6 +32,20 @@ Calculates the least squares objective at tensors `X` and `Y`.
 # TODO Should this be 0.5norm2(X - Y) instead?
 
 """
+    L1 <: AbstractObjective
+
+The absolute error objective.
+"""
+struct L1 <: AbstractObjective end
+
+"""
+    (objective::L1)(X, Y)
+
+Calculates the absolute error objective at tensors `X` and `Y`.
+"""
+(objective::L1)(X, Y) = sum(abs, X - Y)
+
+"""
     Lp <: AbstractObjective
 
 The p-norm distance objective ||X-Y||_p^p.
