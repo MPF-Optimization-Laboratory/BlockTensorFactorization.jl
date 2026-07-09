@@ -46,6 +46,6 @@ end
 Calculates the p-norm objective at tensors `X` and `Y`.
 """
 function (objective::Lp)(X, Y)
-    p = Lp.p
-    return norm(X - Y; p)^p # TODO should this be 1/p ? I think not since p could be Inf
+    p = objective.p
+    return norm(X - Y, p)^p # TODO should this be 1/p ? I think not since p could be Inf
 end

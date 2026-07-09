@@ -128,7 +128,7 @@ function make_gradient(D::AbstractDecomposition, n::Integer, Y::AbstractArray, o
     
     decomposition_type = typeof(D)
 
-    function f(factors) # can only auto-diff arrays, tuples, and tuples of arrays
+    function f(factors...) # can only auto-diff arrays, tuples, and tuples of arrays
         decomposition = build_decomposition(decomposition_type, factors)
         return objective(decomposition, Y) # converted tuple of arrays to a decomposition type
     end
@@ -136,10 +136,10 @@ function make_gradient(D::AbstractDecomposition, n::Integer, Y::AbstractArray, o
     f_tape = GradientTape(f, factors(D))
     compiled_f_tape = compile(f_tape) #TODO could be more efficient by only using one complied tape, 
                                       #rather than a new one for each factor n
-    factor_n = eachfactorindex(X)[n]
+    factor_n = eachfactorindex(D)[n]
 
     function ∇f_n(X; kwargs...)
-        G = gradient(compiled_f_tape, factors(X))
+        G = gradient!(compiled_f_tape, factors(X)) #use `gradient!` over `gradient` since we want the compiled tape
         # return G[n] # the nth factor may not be the nth element! e.g. 0th factor for a tucker1
         return G[factor_n]
     end

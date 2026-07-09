@@ -177,7 +177,7 @@ contractions(G::GenericDecomposition) = G.contractions
 frozen(G::GenericDecomposition) = G.frozen
 function build_decomposition(::Type{T}, factors; contractions, frozen=false_tuple(length(factors)), kwargs...) where {T <: GenericDecomposition}
     constructor = hasproperty(T, :name) ? T.name.wrapper : T # strip concrete type info
-    return constructor(factors, contractions, frozen)::T # result should still be the concrete type we want
+    return constructor(factors, contractions, frozen) #::T # result should still be the concrete type we want
 end
 
 struct SingletonDecomposition{T, N} <: AbstractDecomposition{T, N}
@@ -218,7 +218,7 @@ end
 
 function build_decomposition(::Type{T}, factors; kwargs...) where {T <: AbstractTucker}
     constructor = hasproperty(T, :name) ? T.name.wrapper : T # strip concrete type info
-    return constructor(factors)::T # result should still be the concrete type we want
+    return constructor(factors) #::T # result should still be the concrete type we want
 end
 
 struct Tucker{T, N} <: AbstractTucker{T, N}
