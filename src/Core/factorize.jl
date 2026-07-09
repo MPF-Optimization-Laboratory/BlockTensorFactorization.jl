@@ -124,7 +124,7 @@ Handles all keywords and options, and sets defaults if not provided.
 - `steps`: `LipschitzStep`. What `AbstractStep` to use for the gradient descent updates. Can be a list of steps (one for each factor), or just one. Defaults to `SecantStep` if the model is not an `AbstractTucker` or the objective is not `L2()`
 
 ## Momentum
-- `momentum`: `true`
+- `momentum`: `true`. Defaults to false when steps is not `LipschitzStep`.
 - `δ`: `0.9999`. Amount of momentum, between [0,1)
 - `previous_iterates`: `1`. Number of pervious iterates to save and use between iterations
 
@@ -187,7 +187,9 @@ function default_kwargs(Y; kwargs...)
 	# The rest of the steps parsing is handled later by parse_steps
 
 	# Momentum
-	get!(kwargs, :momentum, true)
+	get!(kwargs, :momentum) do
+		(kwargs[:steps] === LipschitzStep) ? true : false
+	end
 	get!(kwargs, :δ, 0.9999)
 	get!(kwargs, :previous_iterates, 1)
 
@@ -229,7 +231,7 @@ Parses the steps to ensure each factor has a corresponding AbstractStep.
 
 If only a single AbstractStep is provided, assume every factor uses the same type of step.
 """
-function parse_steps(steps, ns; do_subblock_updates, model, objective, decomposition, kwargs...)
+function parse_steps(steps, ns, Y; do_subblock_updates, model, objective, decomposition, kwargs...)
 	if steps === LipschitzStep
 		(model <: AbstractTucker && objective isa L2) || error("Do not know how to calculate LipschitzStep for $model model and $objective objective")
 		# Use our handmade functions # TODO generalize how to calculate these for other models and objectives
@@ -238,17 +240,18 @@ function parse_steps(steps, ns; do_subblock_updates, model, objective, decomposi
 		else
 			return [LipschitzStep(make_lipschitz(decomposition, n, Y, objective; kwargs...)) for n in ns]
 		end
-	elseif all(s -> s isa AbstractStep, steps)
+	elseif all(s -> s isa AbstractStep, steps) # e.g. [ConstantStep(1), SecantStep()]
 		length(s) == length(ns) || error("Number of steps ($(length(s))) should match the number of factors ($(length(ns))), or only provide 1 if every update uses the same step.")
 		return steps
-	elseif all(s -> s <: AbstractStep, steps)
+	elseif all(s -> s <: AbstractStep, steps) # e.g. [SPGStep, SecantStep]
 		length(s) == length(ns) || error("Number of steps ($(length(s))) should match the number of factors ($(length(ns))), or only provide 1 if every update uses the same step.")
-		return [s() for _ in ns] # Turn the types of steps into instances (ex. SecantStep -> SecantStep())
+		return [s() for _ in ns] # Turn the types of steps into instances (e.g. SecantStep -> SecantStep())
 	else
 		error("Unsure how to parse the steps: $steps")
 	end
 end
-parse_steps(steps::AbstractStep, ns; kwargs...) = [steps for _ in ns]
+parse_steps(steps::AbstractStep, ns, Y; kwargs...) = [steps for _ in ns]
+parse_steps(steps::Type{T}, ns, Y; kwargs...) where {T <: AbstractStep} = [steps() for _ in ns]
 
 """
 	parse_constraints(constraints, decomposition; kwargs...)
@@ -339,10 +342,11 @@ function make_update!(decomposition, Y; momentum, constraints, constrain_init, g
 	kwargs[:constraints] = constraints
 	kwargs[:constrain_init] = constrain_init
 	kwargs[:group_updates_by_factor] = group_updates_by_factor
+	kwargs[:do_subblock_updates] = do_subblock_updates
 	kwargs[:objective] = objective
 
 	kwargs[:gradients] = [make_gradient(decomposition, n, Y, objective; kwargs...) for n in ns]
-	kwargs[:steps] = parse_steps(steps, ns; kwargs...)
+	kwargs[:steps] = parse_steps(steps, ns, Y; kwargs...) # must be after gradients since we may want to use them to calculate steps
 
 	update! = nothing #ensure scope of update outside the following if block
 	if do_subblock_updates
