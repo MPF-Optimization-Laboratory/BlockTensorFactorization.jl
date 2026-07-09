@@ -121,6 +121,7 @@ Handles all keywords and options, and sets defaults if not provided.
 - `group_updates_by_factor`: `false`. Groups updates on the same factor together. Overrides to `true` when `random_order=true`. Useful when randomizing order of updates but you want to keep matching momentum-gradientstep-constraint together
 - `recursive_random_order`: `false`. Performs inner blocked updates (grouped updates) in a random order (recursively) each iteration. Note the outer most list of updates can be performed in order if `random_order=false`
 - `do_subblock_updates`: `false`. Performs gradient descent on subblocks within a factor separately. May result in smaller Lipschitz constants and hence larger step sizes being used.
+- `steps`: `LipschitzStep`. What `AbstractStep` to use for the gradient descent updates. Can be a list of steps (one for each factor), or just one. Defaults to `SecantStep` if the model is not an `AbstractTucker` or the objective is not `L2()`
 
 ## Momentum
 - `momentum`: `true`
@@ -180,6 +181,10 @@ function default_kwargs(Y; kwargs...)
 	get!(kwargs, :random_order, kwargs[:recursive_random_order])
 	get!(kwargs, :group_updates_by_factor, kwargs[:random_order])
 	get!(kwargs, :do_subblock_updates, false)
+	get!(kwargs, :steps) do
+		(kwargs[:model] <: AbstractTucker && kwargs[:objective] isa L2) ? LipschitzStep : SecantStep
+	end
+	# The rest of the steps parsing is handled later by parse_steps
 
 	# Momentum
 	get!(kwargs, :momentum, true)
@@ -216,6 +221,34 @@ function default_kwargs(Y; kwargs...)
 
     return kwargs
 end
+
+"""
+    parse_steps(steps, ns; kwargs...)
+
+Parses the steps to ensure each factor has a corresponding AbstractStep.
+
+If only a single AbstractStep is provided, assume every factor uses the same type of step.
+"""
+function parse_steps(steps, ns; do_subblock_updates, model, objective, decomposition, kwargs...)
+	if steps === LipschitzStep
+		(model <: AbstractTucker && objective isa L2) || error("Do not know how to calculate LipschitzStep for $model model and $objective objective")
+		# Use our handmade functions # TODO generalize how to calculate these for other models and objectives
+		if do_subblock_updates
+			return [LipschitzStep(make_block_lipschitz(decomposition, n, Y, objective; kwargs...)) for n in ns] 
+		else
+			return [LipschitzStep(make_lipschitz(decomposition, n, Y, objective; kwargs...)) for n in ns]
+		end
+	elseif all(s -> s isa AbstractStep, steps)
+		length(s) == length(ns) || error("Number of steps ($(length(s))) should match the number of factors ($(length(ns))), or only provide 1 if every update uses the same step.")
+		return steps
+	elseif all(s -> s <: AbstractStep, steps)
+		length(s) == length(ns) || error("Number of steps ($(length(s))) should match the number of factors ($(length(ns))), or only provide 1 if every update uses the same step.")
+		return [s() for _ in ns] # Turn the types of steps into instances (ex. SecantStep -> SecantStep())
+	else
+		error("Unsure how to parse the steps: $steps")
+	end
+end
+parse_steps(steps::AbstractStep, ns; kwargs...) = [steps for _ in ns]
 
 """
 	parse_constraints(constraints, decomposition; kwargs...)
@@ -297,7 +330,7 @@ end
 What one iteration of the algorithm looks like.
 One iteration is likely a full cycle through each block or factor of the model.
 """
-function make_update!(decomposition, Y; momentum, constraints, constrain_init, group_updates_by_factor, do_subblock_updates, objective, kwargs...)
+function make_update!(decomposition, Y; momentum, constraints, constrain_init, group_updates_by_factor, do_subblock_updates, objective, steps, kwargs...)
 	ns = eachfactorindex(decomposition)
 
 	kwargs = Dict{Symbol,Any}(kwargs)
@@ -309,14 +342,13 @@ function make_update!(decomposition, Y; momentum, constraints, constrain_init, g
 	kwargs[:objective] = objective
 
 	kwargs[:gradients] = [make_gradient(decomposition, n, Y, objective; kwargs...) for n in ns]
+	kwargs[:steps] = parse_steps(steps, ns; kwargs...)
 
 	update! = nothing #ensure scope of update outside the following if block
 	if do_subblock_updates
-		kwargs[:steps] = [LipschitzStep(make_block_lipschitz(decomposition, n, Y, objective; kwargs...)) for n in ns] # TODO avoid hard coded lipschitz step
 		kwargs[:combines] = [make_blockGD_combines(decomposition, n, Y; kwargs...) for n in ns]
 		update! = BlockedUpdate((BlockGradientDescent(n, g, s, c) for (n, g, s, c) in zip(ns, kwargs[:gradients], kwargs[:steps], kwargs[:combines]))...)
 	else
-		kwargs[:steps] = [LipschitzStep(make_lipschitz(decomposition, n, Y, objective; kwargs...)) for n in ns] # TODO avoid hard coded lipschitz step
 		update! = BlockedUpdate((GradientDescent(n, g, s) for (n, g, s) in zip(ns, kwargs[:gradients], kwargs[:steps]))...)
 	end
 
