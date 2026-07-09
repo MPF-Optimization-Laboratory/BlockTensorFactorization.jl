@@ -100,6 +100,22 @@ function (step::SPGStep)(x; grad, x_last, grad_last, stepmin=step.min, stepmax=s
     end
 end
 
+"""
+    SecantStep <: AbstractStep
+
+Approximates the local smoothness (Lipschitz constant of the gradient) using finite differences.
+
+The step is norm(x - x_last) / norm(grad - grad_last).
+
+"""
+struct SecantStep <: AbstractStep end
+
+(step::SecantStep)(x::T; n, x_last::T, grad_last::Function, kwargs...) where {T <: AbstractDecomposition} =
+    step(factor(x,n); x_last=factor(x_last,n), grad_last=grad_last(x_last), kwargs...)
+
+function (step::SecantStep)(x; grad, x_last, grad_last, kwargs...)
+    return norm(x - x_last) / norm(grad - grad_last) # always the Euclidean norm (induced by the inner product/operation of gradient ⋅ vector)
+end
 
 ###########################
 

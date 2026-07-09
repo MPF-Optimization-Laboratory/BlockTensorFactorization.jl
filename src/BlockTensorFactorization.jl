@@ -68,7 +68,7 @@ export IterateNormDiff, IterateRelativeDiff, Iteration, ObjectiveValue, Objectiv
 
 #include("./blockupdates.jl")
 export AbstractStep
-export LipschitzStep, ConstantStep, SPGStep
+export LipschitzStep, ConstantStep, SecantStep, SPGStep
 
 export AbstractUpdate
 export GradientDescent, MomentumUpdate
