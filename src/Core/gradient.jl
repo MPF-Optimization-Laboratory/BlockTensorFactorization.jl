@@ -136,12 +136,12 @@ function make_gradient(D::AbstractDecomposition, n::Integer, Y::AbstractArray, o
     f_tape = GradientTape(f, factors(D))
     compiled_f_tape = compile(f_tape) #TODO could be more efficient by only using one complied tape, 
                                       #rather than a new one for each factor n
-    factor_n = eachfactorindex(D)[n]
+    # factor_n = factor(D, n)
 
     function ∇f_n(X; kwargs...)
         G = gradient!(compiled_f_tape, factors(X)) #use `gradient!` over `gradient` since we want the compiled tape
         # return G[n] # the nth factor may not be the nth element! e.g. 0th factor for a tucker1
-        return G[factor_n]
+        return factor(build_decomposition(decomposition_type, G), n)
     end
 
     return ∇f_n
