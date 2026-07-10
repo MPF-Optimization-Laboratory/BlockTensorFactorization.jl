@@ -64,7 +64,7 @@ Main initialization function for `factorize`.
 """
 function initialize(Y, kwargs)
 	decomposition, kwargs = initialize_decomposition(Y; kwargs...)
-	previous, updateprevious! = initialize_previous(decomposition, Y; kwargs...)
+	previous, updateprevious!, kwargs = initialize_previous(decomposition, Y; kwargs...)
 	parameters, updateparameters! = initialize_parameters(decomposition, Y, previous; kwargs...)
 
 	# one pass of the constraints is possibly applied so note decomposition could be mutated
@@ -416,12 +416,19 @@ end
 
 Keep track of one or more previous iterates
 """
-function initialize_previous(decomposition, Y; previous_iterates::Integer, kwargs...)
-	previous = [deepcopy(decomposition) for _ in 1:previous_iterates] # TODO check if this should be copy?
+function initialize_previous(decomposition, Y; previous_iterates::Integer, model, rank, kwargs...)
+	kwargs = Dict{Symbol,Any}(kwargs)
+	# have to add these keyword back since it was extracted
+	kwargs[:previous_iterates] = previous_iterates
+	kwargs[:model] = model
+	kwargs[:rank] = rank
+	
+	# previous = [deepcopy(decomposition) for _ in 1:previous_iterates] # TODO check if this should be copy?
+	previous = [model(size(Y), rank; kwargs...) for _ in 1:previous_iterates]
 	if previous_iterates == 0
 		# No need to copy previous, so make a function that does nothing
 		updateprevious1!(x...) = nothing
-		return previous, updateprevious1!
+		return previous, updateprevious1!, kwargs
 	else
 		# Shift the list of previous iterates and put the newest first
 		function updateprevious2!(previous, parameters, decomposition)
@@ -429,7 +436,7 @@ function initialize_previous(decomposition, Y; previous_iterates::Integer, kwarg
 			previous[begin] = deepcopy(decomposition) # TODO check if this should be copy, or copy!
 			parameters[:x_last] = previous[begin]
 		end
-		return previous, updateprevious2!
+		return previous, updateprevious2!, kwargs
 	end
 end
 
