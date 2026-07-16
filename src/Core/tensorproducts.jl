@@ -49,7 +49,7 @@ Matrix Times Tensor. Entry-wise,
 
 `mtt(A, B)[i1, i2, …, iN] = ∑_r A[i1, r] * B[r, i2, …, iN]`.
 """
-function mtt(A::AbstractMatrix, B::AbstractArray)
+function mtt(A::AbstractMatrix, B::AbstractArray{T}) where T
     sizeB = size(B)
     Bmat = reshape(B, sizeB[1], :)
 
@@ -57,7 +57,7 @@ function mtt(A::AbstractMatrix, B::AbstractArray)
     #C = reshape(Cmat, size(A, 1), sizeB[2:end]...)
 
     # Slightly faster implementation
-    C = zeros(size(A, 1), sizeB[2:end]...)
+    C = zeros(T, size(A, 1), sizeB[2:end]...)
     Cmat = reshape(C, size(A, 1), prod(sizeB[2:end]))
     mul!(Cmat, A, Bmat)
 

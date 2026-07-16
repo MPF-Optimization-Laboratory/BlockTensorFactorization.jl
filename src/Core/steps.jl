@@ -5,6 +5,7 @@ AbstractStep and structure to calculate and store stepsizes for descent
 """
 Interface to make a step scheme is
 
+```
 struct MyStep <: AbstractStep
     ...
 end
@@ -13,16 +14,31 @@ function (step::MyStep)(x::AbstractDecomposition; kwargs...)
     ...
     return step::Real
 end
+```
 
 To use your scheme, construct an instance with any necessary parameters
 
-mystep = MyStep(...)
+`mystep = MyStep(...)`
 
 and then you can call
 
-step = mystep(D; kwargs...)
+`step = mystep(D; kwargs...)`
 
 to compute the step size.
+
+`AbstractStep`s should be able to construct themselves without arguments:
+`MyStep()`, ideally with default parameters if necessary.
+Or they can store a single function that calculates the step (like `LipschitzStep`).
+
+Typical keywords at call time are:
+`n`: Which factor the step is for
+`objective`: The objective function (takes the entire iterate as input)
+`gradient`: How to calculate the gradient of the objective w.r.t. the `n`th factor (takes the entire iterate as input)
+`x_last`: The previous iterate
+`current_gradient`: precomputed `gradient(x)`
+
+for example
+`U.step(x; n, x_last, gradient, current_gradient=grad, objective, kwargs...)`
 """
 abstract type AbstractStep <: Function end
 
@@ -66,29 +82,35 @@ end
 #LipschitzStep(L::Real) = 1/L
 
 struct ConstantStep <: AbstractStep
-    stepsize::Real
+    stepsize::Float64
 end
 
 (step::ConstantStep)(x; kwargs...) = step.stepsize
 
 struct SPGStep <: AbstractStep
-    min::Real
-    max::Real
+    min::Float64
+    max::Float64
+    function SPGStep(min, max)
+        min < max || throw(ArgumentError("min $min must be less than max $max"))
+        new(min, max)
+    end
 end
 
-SPGStep(;min=1e-10, max=1e10) = SPGStep(min, max)
-
-# Convert an input of the full decomposition, to a calculation on the factor
-# Calculate the last gradient if a function was provided
-(step::SPGStep)(x::T; n, x_last::T, grad_last::Function, kwargs...) where {T <: AbstractDecomposition} =
-    step(factor(x,n); x_last=factor(x_last,n), grad_last=grad_last(x_last), kwargs...)
+SPGStep(; min=1e-10, max=1e10) = SPGStep(min, max)
 
 # option to override the set defaults from step
 # TODO SPG has a linesearch/negative momentum update part to the fill iteration
 # but in the best case, this linesearch just uses the value given by this step
 # so I will skip implementing it for now, but may want to add that once
 # I add a line search
-function (step::SPGStep)(x; grad, x_last, grad_last, stepmin=step.min, stepmax=step.max, kwargs...)
+function (step::SPGStep)(x; n, x_last, gradient, current_gradient, stepmin=step.min, stepmax=step.max, kwargs...)
+    # Extract current and last iterates and gradients
+    grad = current_gradient
+    grad_last = gradient(x_last; kwargs...)
+    x = factor(x, n)
+    x_last = factor(x_last, n)
+
+    # Compute the step
     s = x - x_last
     y = grad - grad_last
     sy = (s ⋅ y)
@@ -110,10 +132,13 @@ The step is norm(x - x_last) / norm(grad - grad_last).
 """
 struct SecantStep <: AbstractStep end
 
-(step::SecantStep)(x::T; n, x_last::T, grad_last::Function, kwargs...) where {T <: AbstractDecomposition} =
-    step(factor(x,n); x_last=factor(x_last,n), grad_last=grad_last(x_last), kwargs...)
+function (step::SecantStep)(x; n, x_last, gradient, current_gradient, kwargs...)
+    # Extract current and last iterates and gradients
+    grad = current_gradient
+    grad_last = gradient(x_last; kwargs...)
+    x = factor(x, n)
+    x_last = factor(x_last, n)  
 
-function (step::SecantStep)(x; grad, x_last, grad_last, kwargs...)
     return norm(x - x_last) / norm(grad - grad_last) # always the Euclidean norm (induced by the inner product/operation of gradient ⋅ vector)
 end
 
@@ -142,18 +167,23 @@ struct ArmijoStep <: AbstractStep
     end
 end
 
-function (step::ArmijoStep)(x; objective, gradient, kwargs...)
+function (step::ArmijoStep)(X; n, objective, current_gradient, kwargs...)
+    X_new = copy(X)
+    x_new = factor(X_new, n)
+    x = factor(X, n)
+
     β = step.β
     δ = step.δ
     t = 1
 
-    g = gradient(x)
+    current_objective = objective(x)
+    g = current_gradient
     g_norm = norm2(g)
 
-    x_new = x - t * g
+    @. x_new = x - t * g
     threshold = δ*t*g_norm
 
-    while objective(x) - objective(x_new) < threshold
+    while current_objective - objective(X_new) < threshold
         t *= β
         @. x_new = x - t * g
     end

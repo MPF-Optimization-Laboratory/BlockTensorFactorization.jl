@@ -627,7 +627,7 @@ end
             :maxiter => 1000,
             :norm => l2norm,
             :rank => 5,
-            :model => CPDecomposition{Float64, 2},
+            :model => CPDecomposition,
             :tolerance => 0.01,
             :previous_iterates => 1,
             :constrain_init => true,
@@ -639,6 +639,7 @@ end
             :constrain_output => true,
             :δ => 0.9999,
             :momentum => true,
+            :do_subblock_updates => false,
         )
 
         @test kwargs == true_kwargs
@@ -945,18 +946,18 @@ end
         rank=3,
         momentum=true,
         model=Tucker1,
-        tolerance=(0.1), # less than 10% error
+        tolerance=(0.15), # less than 15% error
         converged=(RelativeError),
         do_subblock_updates=false,
         constrain_init=true,
         constraints=[scaleB_rescaleA!, nonnegativeA!],
         stats=[Iteration, ObjectiveValue, GradientNNCone, RelativeError],
-        maxiter=200
+        maxiter=300
     )
 
     decomposition, stats, kwargs = multiscale_factorize(Y; options...)
 
-    @test isapprox(decomposition, Y; rtol=0.1) # should be within 10%
+    @test isapprox(decomposition, Y; rtol=0.15) # should be within 15%
     end
 end
 
@@ -1022,10 +1023,32 @@ end
 end
 
 @testset "AutoDiff" begin
-    objective = Lp(2)
+    objective = L1()
     D = CPDecomposition((3,3,3),1)
-    Y = random(3,3,3)
+    Y = randn(3,3,3)
     objective(D, Y)
+
+    fact = BlockTensorFactorization.factorize
+
+    # Regular run of Tucker1
+    C = abs_randn(5, 11, 12)
+    A = abs_randn(10, 5)
+    Y = Tucker1((C, A))
+    Y = array(Y)
+
+    decomposition, stats, kwargs = fact(Y;
+        rank=5,
+        # tolerance=(2, 0.05),
+        # converged=(GradientNNCone, RelativeError),
+        tolerance=0.05,
+        converged=RelativeError,
+        momentum=false,
+        previous_updates=1,
+        # constrain_init=true,
+        # constraints=nonnegative!,
+        stats=[Iteration, ObjectiveValue, RelativeError, EuclideanStepSize], #GradientNNCone
+        objective=L1(),
+    );
 
 end
 

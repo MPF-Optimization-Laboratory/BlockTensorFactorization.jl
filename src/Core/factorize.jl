@@ -126,7 +126,7 @@ Handles all keywords and options, and sets defaults if not provided.
 ## Momentum
 - `momentum`: `true`. Defaults to false when steps is not `LipschitzStep`.
 - `δ`: `0.9999`. Amount of momentum, between [0,1)
-- `previous_iterates`: `1`. Number of pervious iterates to save and use between iterations
+- `previous_iterates`: `1`. Number of pervious iterates to save and use between iterations. Must be at least 1 if using `momentum` or using `steps` that require previous iterates 
 
 ## Constraints
 - `constraints`: `nothing`. Can be a list of ConstraintUpdate, or just one
@@ -151,11 +151,12 @@ function default_kwargs(Y; kwargs...)
 	# Decomposition Initialization
 	get!(kwargs, :decomposition, nothing)
 	get!(kwargs, :model) do
-		isnothing(kwargs[:decomposition]) ? Tucker1 : typeof(kwargs[:decomposition])
+		isnothing(kwargs[:decomposition]) ? Tucker1 : typeof(kwargs[:decomposition]).name.wrapper
 	end
 
 	# Ensure the model is valid and decomposition type matches the model (or is unspecified)
 	@assert kwargs[:model] <: AbstractDecomposition
+	@assert !isa(kwargs[:model], DataType) # should be a plain type (e.g. Tucker1) and not parametric (e.g. Tucker1{Float64, 3})
 	@assert typeof(kwargs[:decomposition]) <: Union{Nothing, kwargs[:model]}
 
 	get!(kwargs, :rank) do # Can also be a tuple. For example, Tucker rank could be (1, 2, 3) for an order 3 array Y
@@ -231,27 +232,32 @@ Parses the steps to ensure each factor has a corresponding AbstractStep.
 
 If only a single AbstractStep is provided, assume every factor uses the same type of step.
 """
-function parse_steps(steps, ns, Y; do_subblock_updates, model, objective, decomposition, kwargs...)
-	if steps === LipschitzStep
-		(model <: AbstractTucker && objective isa L2) || error("Do not know how to calculate LipschitzStep for $model model and $objective objective")
-		# Use our handmade functions # TODO generalize how to calculate these for other models and objectives
-		if do_subblock_updates
-			return [LipschitzStep(make_block_lipschitz(decomposition, n, Y, objective; kwargs...)) for n in ns] 
-		else
-			return [LipschitzStep(make_lipschitz(decomposition, n, Y, objective; kwargs...)) for n in ns]
-		end
-	elseif all(s -> s isa AbstractStep, steps) # e.g. [ConstantStep(1), SecantStep()]
-		length(s) == length(ns) || error("Number of steps ($(length(s))) should match the number of factors ($(length(ns))), or only provide 1 if every update uses the same step.")
+function parse_steps(steps, ns, Y; kwargs...)
+	if all(s -> s isa AbstractStep, steps) # e.g. [ConstantStep(1), SecantStep()]
+		length(steps) == length(ns) || error("Number of steps ($(length(steps))) should match the number of factors ($(length(ns))), or only provide 1 if every update uses the same step.")
 		return steps
 	elseif all(s -> s <: AbstractStep, steps) # e.g. [SPGStep, SecantStep]
-		length(s) == length(ns) || error("Number of steps ($(length(s))) should match the number of factors ($(length(ns))), or only provide 1 if every update uses the same step.")
-		return [s() for _ in ns] # Turn the types of steps into instances (e.g. SecantStep -> SecantStep())
+		length(steps) == length(ns) || error("Number of steps ($(length(steps))) should match the number of factors ($(length(ns))), or only provide 1 if every update uses the same step.")
+		return [s() for s in steps] # Turn the types of steps into instances (e.g. SecantStep -> SecantStep())
 	else
 		error("Unsure how to parse the steps: $steps")
 	end
 end
-parse_steps(steps::AbstractStep, ns, Y; kwargs...) = [steps for _ in ns]
-parse_steps(steps::Type{T}, ns, Y; kwargs...) where {T <: AbstractStep} = [steps() for _ in ns]
+parse_steps(steps::AbstractStep, ns, Y; kwargs...) = [steps for _ in ns] # repeat the same step for each factor
+function parse_steps(steps::Type{T}, ns, Y; kwargs...) where {T <: AbstractStep} 
+	return steps === LipschitzStep ? parse_LipschitzStep(ns, Y; kwargs...) : [steps() for _ in ns] # repeat the same step for each factor
+end
+
+### TODO make it possible to use LipschitzStep on just one factor, and have it auto call the make function
+function parse_LipschitzStep(ns, Y; do_subblock_updates, model, objective, decomposition, kwargs...)
+	(model <: AbstractTucker && objective isa L2) || error("Do not know how to calculate LipschitzStep for $model model and $objective objective")
+	# Use our handmade functions # TODO generalize how to calculate these for other models and objectives
+	if do_subblock_updates
+		return [LipschitzStep(make_block_lipschitz(decomposition, n, Y, objective; kwargs...)) for n in ns] 
+	else
+		return [LipschitzStep(make_lipschitz(decomposition, n, Y, objective; kwargs...)) for n in ns]
+	end
+end
 
 """
 	parse_constraints(constraints, decomposition; kwargs...)
@@ -419,7 +425,7 @@ Keep track of one or more previous iterates
 function initialize_previous(decomposition, Y; previous_iterates::Integer, model, rank, kwargs...)
 	kwargs = Dict{Symbol,Any}(kwargs)
 	# have to add these keyword back since it was extracted
-	kwargs[:previous_iterates] = previous_iterates
+	kwargs[:previous_iterates] = previous_iterates #TODO update this name to `n_previous_iterates`
 	kwargs[:model] = model
 	kwargs[:rank] = rank
 	
@@ -445,16 +451,18 @@ end
 
 update parameters needed for the update
 """
-function initialize_parameters(decomposition, Y, previous; momentum::Bool, random_order, recursive_random_order, kwargs...)
+function initialize_parameters(decomposition, Y, previous; momentum::Bool, random_order, recursive_random_order, objective, kwargs...)
 	# parameters for the update step are symbol => value pairs
 	# they are held in a dictionary since we may mutate these for ex. the stepsize
 	parameters = Dict{Symbol, Any}()
 
 	# General Looping
 	parameters[:iteration] = 0
-	parameters[:x_last] = previous[begin] # Last iterate
+	parameters[:x_last] = previous[begin] # Last iterate # TODO check if this errors when previous_iterates = 0?
 	parameters[:random_order] = random_order
 	parameters[:recursive_random_order] = recursive_random_order
+	parameters[:objective] = X -> objective(X, Y) # TODO see if this should be stored by the update(s) that need it (e.g. GradientDescent)
+	parameters[:stepsizes] = Dict{Int, Any}((n, 0.0) for n in eachfactorindex(decomposition)) # TODO could optimize storage by using a Vector, but need to handle possibly offset indices (e.g. factor 0 in Tucker1)
 
 	# Momentum
 	if momentum
@@ -477,6 +485,8 @@ function initialize_parameters(decomposition, Y, previous; momentum::Bool, rando
 			parameters[:t] = update_t(parameters[:t_last])
 			parameters[:ω] = (parameters[:t_last] - 1) / parameters[:t]
 		end
+
+		# parameters[:stepsizes] # updated by GradientDescent each iteration
 	end
 
 	return parameters, updateparameters!

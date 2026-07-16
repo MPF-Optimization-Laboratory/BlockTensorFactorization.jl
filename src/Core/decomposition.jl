@@ -259,7 +259,8 @@ function _valid_tucker(factors)
 end
 
 struct Tucker1{T, N} <: AbstractTucker{T, N}
-	factors::Tuple{<:AbstractArray{T}, <:AbstractMatrix{T}} # ex. (G, A)
+	factors::Tuple{<:AbstractArray{T}, <:AbstractMatrix{U}} where U # ex. (G, A)
+    # TODO Ideally need to determine the type that results from multiplying `T` and `U`
     frozen::Tuple{Bool, Bool}
     function Tucker1{T, N}(factors, frozen) where {T, N}
         core = factors[begin]
@@ -314,7 +315,7 @@ Optionally use `frozen::Tuple{Bool}` to specify which factors are [`frozen`](@re
 
 See [`×₁`](@ref) and [`mtt`](@ref).
 """
-function Tucker1(factors::Tuple{<:AbstractArray{T}, <:AbstractMatrix{T}}, frozen=false_tuple(2)) where T
+function Tucker1(factors::Tuple{<:AbstractArray{T}, <:AbstractMatrix{U}}, frozen=false_tuple(2)) where {T, U}
     return Tucker1{T, ndims(factors[1])}(factors, frozen)
 end
 

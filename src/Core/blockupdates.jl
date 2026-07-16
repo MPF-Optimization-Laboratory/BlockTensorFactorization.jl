@@ -73,14 +73,15 @@ struct GradientDescent <: AbstractGradientDescent
     step::AbstractStep
 end
 
-function (U::GradientDescent)(x; x_last, kwargs...)
+function (U::GradientDescent)(x; x_last, objective, stepsizes, kwargs...) # TODO change mention of `kwargs` to `parameters` throughout
     n = U.n
     if checkfrozen(x, n)
         return x
     end
     grad = U.gradient(x; kwargs...)
     # Note we pass a function for grad_last (lazy) so that we only compute it if needed for the step
-    s = U.step(x; n, x_last, grad, grad_last=(x -> U.gradient(x; kwargs...)), kwargs...)
+    s = U.step(x; n, x_last, gradient=U.gradient, current_gradient=grad, objective, kwargs...)
+    stepsizes[n] = s # update dictionary of stepsizes with most recent step size
     a = factor(x, n)
     @. a -= s*grad
 end
@@ -101,14 +102,15 @@ struct BlockGradientDescent <: AbstractGradientDescent
     combine::Function # takes a step (number, matrix, or tensor) and combines it with a gradient
 end
 
-function (U::BlockGradientDescent)(x; x_last, kwargs...)
+function (U::BlockGradientDescent)(x; x_last, objective, stepsizes, kwargs...)
     n = U.n
     if checkfrozen(x, n)
         return x
     end
     grad = U.gradient(x; kwargs...)
     # Note we pass a function for grad_last (lazy) so that we only compute it if needed for the step
-    s = U.step(x; n, x_last, grad, grad_last=(x -> U.gradient(x; kwargs...)), kwargs...)
+    s = U.step(x; n, x_last, gradient=U.gradient, current_gradient=grad, objective, kwargs...)
+    stepsizes[n] = s # update dictionary of stepsizes with most recent step size
     a = factor(x, n)
     a .-= U.combine(grad, s)
 end
