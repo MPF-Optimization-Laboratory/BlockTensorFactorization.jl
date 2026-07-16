@@ -75,7 +75,7 @@ export LinearConstraint
 
 include("./stats.jl")
 export AbstractStat
-export DisplayDecomposition, EuclideanLipschitz, EuclideanStepSize, FactorNorms, GradientNorm, GradientNNCone
+export DisplayDecomposition, EuclideanLipschitz, EuclideanStepSize, FactorNorms, FirstFactorStepSize, GradientNorm, GradientNNCone
 export IterateNormDiff, IterateRelativeDiff, Iteration, ObjectiveValue, ObjectiveRatio, PrintStats, RelativeError
 
 include("./gradient.jl")

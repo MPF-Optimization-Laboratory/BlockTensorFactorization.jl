@@ -133,30 +133,37 @@ The 2-norm of the stepsizes that would be taken for all blocks.
 For example, if there are two blocks, and we would take a stepsize of A to update one block
 and B to update the other, this would return sqrt(A^2 + B^2).
 """
-struct EuclideanStepSize{T} <: AbstractStat
-    steps::T
-    function EuclideanStepSize{T}(steps) where T
-        @assert all(x -> typeof(x) <: AbstractStep, steps)
-        new{T}(steps)
-    end
+struct EuclideanStepSize <: AbstractStat end
+
+EuclideanStepSize(; kwargs...) = EuclideanStepSize()
+
+struct FirstFactorStepSize
+    n::Int
 end
 
-EuclideanStepSize(; steps, kwargs...) = EuclideanStepSize{typeof(steps)}(steps)
+"""
+    FirstFactorStepSize(; kwargs...)
+
+The stepsize used by factor `first(eachfactorindex(X))`.
+
+This is the core in `Tucker` and `Tucker1` decompositions.
+"""
+FirstFactorStepSize(; kwargs...) = FirstFactorStepSize()
 
 """
 The 2-norm of the lipschitz constants that would be taken for all blocks.
 
 Need the stepsizes to be lipschitz steps since it is calculated similarly to EuclideanStepSize.
 """
-struct EuclideanLipschitz{T} <: AbstractStat
-    steps::T
-    function EuclideanLipschitz{T}(steps) where T
-        @assert all(x -> typeof(x) <: AbstractStep, steps)
-        new{T}(steps)
+struct EuclideanLipschitz <: AbstractStat
+    steps # not forcing a type since any iterable (e.g. Vector or Tuple) will do
+    function EuclideanLipschitz(steps)
+        @assert all(x -> x isa LipschitzStep, steps)
+        new(steps)
     end
 end
 
-EuclideanLipschitz(; steps, kwargs...) = EuclideanLipschitz{typeof(steps)}(steps)
+EuclideanLipschitz(; steps, kwargs...) = EuclideanLipschitz(steps)
 
 """
     FactorNorms(; norm, kwargs...)
@@ -189,8 +196,9 @@ end
 
 (S::IterateNormDiff)(X, _, previous, _, _) = S.norm(X - previous[begin])
 (S::IterateRelativeDiff)(X, _, previous, _, _) = S.norm(X - previous[begin]) / S.norm(previous[begin])
-(S::EuclideanStepSize)(X, _, _, _, _) = sqrt.(sum(calcstep -> calcstep(X)^2, S.steps))
-(S::EuclideanLipschitz)(X, _, _, _, _) = sqrt.(sum(calcstep -> calcstep(X)^(-2), S.steps))
+(S::EuclideanStepSize)(_, _, _, parameters, _) = sqrt(norm2(values(parameters[:stepsizes])))
+(S::FirstFactorStepSize)(X, _, _, parameters, _) = parameters[:stepsizes][first(eachfactorindex(X))]
+(S::EuclideanLipschitz)(X, _, _, _, _) = sqrt.(sum(calcstep -> calcstep(X)^(-2), S.steps)) # using reciprocal to un-invert the stepsize and get the Lipschitz constant
 (S::FactorNorms)(X, _, _, _, _) = S.norm.(factors(X))
 (S::PrintStats)(_, _, _, parameters, stats) = if parameters[:iteration] > 0; println(last(stats)); end
 function (S::DisplayDecomposition)(X, _, _, parameters, _)
