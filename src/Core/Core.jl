@@ -80,10 +80,11 @@ export IterateNormDiff, IterateRelativeDiff, Iteration, ObjectiveValue, Objectiv
 
 include("./gradient.jl")
 
-include("./blockupdates.jl")
+include("./steps.jl")
 export AbstractStep
 export LipschitzStep, ConstantStep, SecantStep, SPGStep
 
+include("./blockupdates.jl")
 export AbstractUpdate, AbstractGradientDescent
 export GradientDescent, BlockGradientDescent, MomentumUpdate
 

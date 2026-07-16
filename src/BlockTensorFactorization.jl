@@ -66,6 +66,12 @@ export AbstractStat
 export DisplayDecomposition, EuclideanLipschitz, EuclideanStepSize, FactorNorms, GradientNorm, GradientNNCone
 export IterateNormDiff, IterateRelativeDiff, Iteration, ObjectiveValue, ObjectiveRatio, PrintStats, RelativeError
 
+# include("./gradient.jl")
+
+# include("./steps.jl")
+export AbstractStep
+export LipschitzStep, ConstantStep, SecantStep, SPGStep
+
 #include("./blockupdates.jl")
 export AbstractStep
 export LipschitzStep, ConstantStep, SecantStep, SPGStep
