@@ -82,7 +82,7 @@ include("./gradient.jl")
 
 include("./steps.jl")
 export AbstractStep
-export LipschitzStep, ConstantStep, SecantStep, SPGStep
+export ArmijoStep, ConstantStep, LipschitzStep, SecantStep, SPGStep
 
 include("./blockupdates.jl")
 export AbstractUpdate, AbstractGradientDescent

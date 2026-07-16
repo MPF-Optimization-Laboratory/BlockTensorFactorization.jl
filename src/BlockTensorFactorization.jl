@@ -70,7 +70,7 @@ export IterateNormDiff, IterateRelativeDiff, Iteration, ObjectiveValue, Objectiv
 
 # include("./steps.jl")
 export AbstractStep
-export LipschitzStep, ConstantStep, SecantStep, SPGStep
+export ArmijoStep, ConstantStep, LipschitzStep, SecantStep, SPGStep
 
 #include("./blockupdates.jl")
 export AbstractStep

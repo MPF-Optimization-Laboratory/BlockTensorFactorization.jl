@@ -116,3 +116,47 @@ struct SecantStep <: AbstractStep end
 function (step::SecantStep)(x; grad, x_last, grad_last, kwargs...)
     return norm(x - x_last) / norm(grad - grad_last) # always the Euclidean norm (induced by the inner product/operation of gradient ⋅ vector)
 end
+
+"""
+    ArmijoStep <: AbstractStep 
+
+Armijo steplength rule selects the largest step t=β^p such that
+
+`f(x) - f(x - t∇f(x)) ≥ δt‖∇f(x)‖^2`
+
+where `β` and `δ` are between `(0, 1)`.
+
+This ensures the new point `x_new = x - t∇f(x)` reduces the objective by a set amount:
+
+`f(x_new) ≤ f(x) - δt‖∇f(x)‖^2`.
+
+Parameters `β` and `δ` default to `0.5`.
+"""
+struct ArmijoStep <: AbstractStep 
+    β::Float64
+    δ::Float64
+    function ArmijoStep(; β=0.5, δ=0.5)
+        0 ≤ β ≤ 1 || throw(ArgumentError("β must be between 0 and 1, got $β"))
+        0 ≤ δ ≤ 1 || throw(ArgumentError("δ must be between 0 and 1, got $δ"))
+        new(β, δ)
+    end
+end
+
+function (step::ArmijoStep)(x; objective, gradient, kwargs...)
+    β = step.β
+    δ = step.δ
+    t = 1
+
+    g = gradient(x)
+    g_norm = norm2(g)
+
+    x_new = x - t * g
+    threshold = δ*t*g_norm
+
+    while objective(x) - objective(x_new) < threshold
+        t *= β
+        @. x_new = x - t * g
+    end
+
+    return t # slight inefficiency where we don't also return the new iterate `x_new`
+end
