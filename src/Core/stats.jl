@@ -133,12 +133,10 @@ The 2-norm of the stepsizes that would be taken for all blocks.
 For example, if there are two blocks, and we would take a stepsize of A to update one block
 and B to update the other, this would return sqrt(A^2 + B^2).
 """
-struct EuclideanStepSize <: AbstractStat end
-
-EuclideanStepSize(; kwargs...) = EuclideanStepSize()
-
-struct FirstFactorStepSize
-    n::Int
+struct EuclideanStepSize <: AbstractStat 
+    function EuclideanStepSize(; kwargs...) # must define it this way so the constructor can take (and ignore) kwargs
+        new()
+    end
 end
 
 """
@@ -148,7 +146,11 @@ The stepsize used by factor `first(eachfactorindex(X))`.
 
 This is the core in `Tucker` and `Tucker1` decompositions.
 """
-FirstFactorStepSize(; kwargs...) = FirstFactorStepSize()
+struct FirstFactorStepSize <: AbstractStat 
+    function FirstFactorStepSize(; kwargs...) # must define it this way so the constructor can take (and ignore) kwargs
+        new()
+    end
+end
 
 """
 The 2-norm of the lipschitz constants that would be taken for all blocks.
