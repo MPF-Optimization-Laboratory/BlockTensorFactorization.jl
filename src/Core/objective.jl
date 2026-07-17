@@ -63,3 +63,21 @@ function (objective::Lp)(X, Y)
     p = objective.p
     return norm(X - Y, p)^p # TODO should this be 1/p ? I think not since p could be Inf
 end
+
+"""
+    KLDivergence <: AbstractObjective
+
+KL-divergence: `sum_i X[i] ln (X[i] / Y[i])`. Should be used with simplex-like constraints.
+
+This is the f-divergence with `f(t)=t*ln(t)`.
+"""
+struct KLDivergence <: AbstractObjective end
+
+"""
+    (KLDivergence::Lp)(X, Y)
+
+Calculates the KL-divergence objective at tensors `X` and `Y`.
+"""
+function (objective::KLDivergence)(X, Y)
+    return sum(@. X * log(X / Y))
+end

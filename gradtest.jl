@@ -128,3 +128,50 @@ using Zygote: @adjoint
 @adjoint CPDecomposition{Float64, 3}(factors, frozen) = CPDecomposition{Float64, 3}(factors, frozen), x -> begin
     zero.(factors)
 end
+
+#---------------
+
+using BenchmarkTools
+using Random
+
+size = (1000,)
+
+function simplex_rand(size)
+    A = abs.(randn(size))
+    A ./= sum(A)
+    return A
+end
+simplex_rand(size...) = simplex_rand(size)
+
+KL1(X, Y) = sum(@. X * log(X / Y))
+KL2(X, Y) = begin
+    total = 0
+    for (x, y) in zip(X, Y)
+        total += x * log(x / y)
+    end
+    total
+end
+KL3(X, Y) = begin
+    total = 0
+    for i in eachindex(X)
+        total += X[i] * log(X[i] / Y[i])
+    end
+    total
+end
+
+@btime KL1(X,Y) setup=(X = simplex_rand(size);Y= simplex_rand(size))
+@btime KL2(X,Y) setup=(X = simplex_rand(size);Y= simplex_rand(size))
+@btime KL3(X,Y) setup=(X = simplex_rand(size);Y= simplex_rand(size))
+
+X = simplex_rand(size)
+Y = simplex_rand(size)
+
+grad_tape1 = ReverseDiff.GradientTape(x -> KL1(x, Y), X) |> ReverseDiff.compile
+grad_tape2 = ReverseDiff.GradientTape(x -> KL2(x, Y), X) |> ReverseDiff.compile
+grad_tape3 = ReverseDiff.GradientTape(x -> KL3(x, Y), X) |> ReverseDiff.compile
+
+G = zero(X)
+
+@btime ReverseDiff.gradient!(grad_tape1, X) setup=(X = simplex_rand(size));
+@btime ReverseDiff.gradient!(grad_tape2, X) setup=(X = simplex_rand(size));
+@btime ReverseDiff.gradient!(grad_tape3, X) setup=(X = simplex_rand(size));
