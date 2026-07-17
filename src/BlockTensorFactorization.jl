@@ -28,7 +28,7 @@ export AbstractTucker, Tucker, Tucker1, CPDecomposition
 export AbstractObjective
 export KLDivergence, L1, L2, Lp
 export BUILT_IN_STRUCTURED_OBJECTIVES
-export AbstractStructuredObjective, StructuredObjective
+export AbstractStructuredObjective, StructuredObjective, SliceWiseObjective
 export ColWiseObjective, RowWiseObjective, Slice1WiseObjective, Slice12WiseObjective
 
 #include("./factormatching.jl")
