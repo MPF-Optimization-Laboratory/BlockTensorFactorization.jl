@@ -121,7 +121,7 @@ Handles all keywords and options, and sets defaults if not provided.
 - `group_updates_by_factor`: `false`. Groups updates on the same factor together. Overrides to `true` when `random_order=true`. Useful when randomizing order of updates but you want to keep matching momentum-gradientstep-constraint together
 - `recursive_random_order`: `false`. Performs inner blocked updates (grouped updates) in a random order (recursively) each iteration. Note the outer most list of updates can be performed in order if `random_order=false`
 - `do_subblock_updates`: `false`. Performs gradient descent on subblocks within a factor separately. May result in smaller Lipschitz constants and hence larger step sizes being used.
-- `steps`: `LipschitzStep`. What `AbstractStep` to use for the gradient descent updates. Can be a list of steps (one for each factor), or just one. Defaults to `SecantStep` if the model is not an `AbstractTucker` or the objective is not `L2()`
+- `steps`: `LipschitzStep`. What `AbstractStep` to use for the gradient descent updates. Can be a list of steps (one for each factor), or just one. Defaults to `ArmijoStep` if the model is not an `AbstractTucker` or the objective is not `L2()`
 
 ## Momentum
 - `momentum`: `true`. Defaults to false when steps is not `LipschitzStep`.
@@ -183,7 +183,7 @@ function default_kwargs(Y; kwargs...)
 	get!(kwargs, :group_updates_by_factor, kwargs[:random_order])
 	get!(kwargs, :do_subblock_updates, false)
 	get!(kwargs, :steps) do
-		(kwargs[:model] <: AbstractTucker && kwargs[:objective] isa L2) ? LipschitzStep : SecantStep
+		(kwargs[:model] <: AbstractTucker && kwargs[:objective] isa L2) ? LipschitzStep : ArmijoStep
 	end
 	# The rest of the steps parsing is handled later by parse_steps
 

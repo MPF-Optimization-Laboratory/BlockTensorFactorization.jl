@@ -1023,7 +1023,7 @@ end
 end
 
 @testset "AutoDiff" begin
-    objective = L1()
+    # objective = L2()
     D = CPDecomposition((3,3,3),1)
     Y = randn(3,3,3)
     objective(D, Y)
@@ -1046,9 +1046,13 @@ end
         previous_updates=1,
         # constrain_init=true,
         # constraints=nonnegative!,
-        stats=[Iteration, ObjectiveValue, RelativeError, EuclideanStepSize], #GradientNNCone
-        objective=L1(),
+        stats=[Iteration, ObjectiveValue, EuclideanStepSize, RelativeError, EuclideanStepSize], #GradientNNCone
+        objective=Lp(1.9),
+        steps=ArmijoStep,
+        maxiter=100,
     );
+
+    @test stats[end,:RelativeError] < 0.05
 
 end
 

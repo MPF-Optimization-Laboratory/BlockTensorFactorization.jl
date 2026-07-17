@@ -176,14 +176,14 @@ function (step::ArmijoStep)(X; n, objective, current_gradient, kwargs...)
     δ = step.δ
     t = 1
 
-    current_objective = objective(x)
+    current_objective = objective(X)
     g = current_gradient
     g_norm = norm2(g)
 
     @. x_new = x - t * g
-    threshold = δ*t*g_norm
+    threshold = δ*g_norm
 
-    while current_objective - objective(X_new) < threshold
+    while current_objective - objective(X_new) < t*threshold
         t *= β
         @. x_new = x - t * g
     end
