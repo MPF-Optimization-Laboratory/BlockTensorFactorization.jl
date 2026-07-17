@@ -1024,13 +1024,13 @@ end
 
 @testset "AutoDiff" begin
     # objective = L2()
-    D = CPDecomposition((3,3,3),1)
-    Y = randn(3,3,3)
-    objective(D, Y)
+    # D = CPDecomposition((3,3,3),1)
+    # Y = randn(3,3,3)
+    # objective(D, Y)
 
     fact = BlockTensorFactorization.factorize
 
-    # Regular run of Tucker1
+    # Regular run of Tucker1 with Lp(1.9) and ArmijoStep
     C = abs_randn(5, 11, 12)
     A = abs_randn(10, 5)
     Y = Tucker1((C, A))
@@ -1053,6 +1053,34 @@ end
     );
 
     @test stats[end,:RelativeError] < 0.05
+
+    # Regular run of Tucker1 with KLDivergence(1.9) and ArmijoStep
+    C = abs_randn(5, 11, 12)
+    A = abs_randn(10, 5)
+    C ./= sum(C)
+    # A ./= sum(A)
+    Y = Tucker1((C, A))
+    Y = array(Y)
+    Y ./= sum(Y)
+
+    decomposition, stats, kwargs = fact(Y;
+        rank=5,
+        # tolerance=(2, 0.05),
+        # converged=(GradientNNCone, RelativeError),
+        tolerance=0.05,
+        converged=RelativeError,
+        momentum=false,
+        previous_updates=1,
+        # constrain_init=true,
+        constraints=[l1scale! ∘ nonnegative!, nonnegative!], #l1normalize! ∘, l1scale! ∘
+        stats=[Iteration, ObjectiveValue, EuclideanStepSize, RelativeError, EuclideanStepSize], #GradientNNCone
+        objective=KLDivergence(),
+        steps=ArmijoStep,
+        maxiter=100,
+        skip_rescale=true,
+    );
+
+    stats
 
 end
 

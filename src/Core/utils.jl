@@ -114,6 +114,12 @@ Like `getindex` but returns the compliment to the index or indices requested.
 @doc docs getnotindex
 # Want both methods to receive this documentation
 
+#short straightforward helpers
+each1slice(x) = eachslice(x; dims=1)
+each12slice(x) = eachslice(x; dims=(1,2))
+size2(A) = size(A, 2)
+namedtuple_to_string(nt) = join(("$(k)=$(v)" for (k, v) in pairs(nt)), ", ")
+
 """
     eachfibre(A::AbstractArray; n::Integer, kwargs...)
 

@@ -285,13 +285,6 @@ check(S::ScaledNormalization{<:Function}, A::AbstractArray) = all((S.norm).(S.wh
 # Programmatically generated built-in constraints #
 ###################################################
 
-# Helpers
-
-each1slice(x) = eachslice(x; dims=1)
-each12slice(x) = eachslice(x; dims=(1,2))
-size2(A) = size(A, 2)
-namedtuple_to_string(nt) = join(("$(k)=$(v)" for (k, v) in pairs(nt)), ", ")
-
 constraint_to_norm = Dict([
     "1" => l1norm,
     "2" => l2norm,
