@@ -218,4 +218,6 @@ const STATS_REQUIRING_PREVIOUS = Type{<:AbstractStat}[
     ObjectiveRatio,
     IterateNormDiff,
     IterateRelativeDiff,
+    EuclideanStepSize,
+    FirstFactorStepSize,
 ]
