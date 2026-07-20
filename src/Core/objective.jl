@@ -67,19 +67,35 @@ end
 """
     KLDivergence <: AbstractObjective
 
-KL-divergence: `sum_i X[i] ln (X[i] / Y[i])`. Should be used with simplex-like constraints.
+KL-divergence: `sum_i X[i] log(X[i] / Y[i])`. Should be used with simplex-like constraints.
 
 This is the f-divergence with `f(t)=t*ln(t)`.
 """
 struct KLDivergence <: AbstractObjective end
 
 """
-    (KLDivergence::Lp)(X, Y)
+    (objective::KLDivergence)(X, Y)
 
 Calculates the KL-divergence objective at tensors `X` and `Y`.
 """
 function (objective::KLDivergence)(X, Y)
     return sum(@. abs(X) * log(abs(X / Y)))
+end
+
+"""
+    CrossEntropy <: AbstractObjective
+
+Cross-entropy divergence `- sum_i X[i] log(Y[i])`. Should be used with simplex-like constraints.
+"""
+struct CrossEntropy <: AbstractObjective end
+
+"""
+    (objective::CrossEntropy)(X, Y)
+
+Calculates the cross-entropy objective at tensors `X` and `Y`.
+"""
+function (objective::CrossEntropy)(X, Y)
+    return -sum(@. abs(X) * log(abs(Y)))
 end
 
 """
@@ -119,13 +135,10 @@ Calculated the objective between each slice of X and Y.
 """
 (T::SliceWiseObjective)(X, Y) = sum(T.objective(x, y) for (x, y) in zip(T.whats_compared(X), T.whats_compared(Y)))
 
-# """RowWiseObjective(objective) = SliceWiseObjective(objective, eachrow)"""
+# Use meta-programming to make the following
 # RowWiseObjective(objective) = SliceWiseObjective(objective, eachrow)
-# """ColWiseObjective(objective) = SliceWiseObjective(objective, eachcol)"""
 # ColWiseObjective(objective) = SliceWiseObjective(objective, eachcol)
-# """Slice1WiseObjective(objective) = SliceWiseObjective(objective, x -> eachslice(x; dims=1))"""
 # Slice1WiseObjective(objective) = SliceWiseObjective(objective, x -> eachslice(x; dims=1))
-# """Slice12WiseObjective(objective) = SliceWiseObjective(objective, x -> eachslice(x; dims=(1,2)))"""
 # Slice12WiseObjective(objective) = SliceWiseObjective(objective, x -> eachslice(x; dims=(1,2)))
 
 names_and_slice = [
