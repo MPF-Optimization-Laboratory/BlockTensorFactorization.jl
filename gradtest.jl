@@ -175,3 +175,16 @@ G = zero(X)
 @btime ReverseDiff.gradient!(grad_tape1, X) setup=(X = simplex_rand(size));
 @btime ReverseDiff.gradient!(grad_tape2, X) setup=(X = simplex_rand(size));
 @btime ReverseDiff.gradient!(grad_tape3, X) setup=(X = simplex_rand(size));
+
+################
+
+using BenchmarkTools
+using Random
+
+abs1(x) = abs(x)
+abs2(x) = sign(x) * x
+abs3(x) = x ≥ 0 ? x : -x
+
+@btime abs1.(x) setup=(x = randn(1000))
+@btime abs2.(x) setup=(x = randn(1000))
+@btime abs3.(x) setup=(x = randn(1000));
