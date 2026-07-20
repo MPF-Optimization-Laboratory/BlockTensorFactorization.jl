@@ -28,9 +28,9 @@ options = (
     model=Tucker1,
     momentum=false, # momentum causes slower iterations, but often fewer total iterations
     do_subblock_updates=false, # uses independent stepsizes on each row, col, or fibre. Can speed up convergence but possibly unstable if an iterate is near the boundary of the constraints
-    tolerance=.01, # want less than 1% error
-    converged=RelativeError,
-    maxiter=20,
+    tolerance=(.01, 1e-16), # want less than 1% error
+    converged=(RelativeError,EuclideanStepSize),
+    maxiter=200,
     stats=[
         Iteration, ObjectiveValue, GradientNNCone, RelativeError, EuclideanStepSize
     ],
@@ -42,8 +42,8 @@ options = (
     # (Euclidean) simplex projections rather than nonnegative followed by a rescaling,
     # but is usually slower than l1scale_cols! ∘ nonnegative!.
 
-    constraints=[l1scale_cols! ∘ nonnegative!, l1scale_cols! ∘ nonnegative!],
-    #constraints=[simplex_cols!, simplex_cols!],
+    # constraints=[l1scale_rows! ∘ nonnegative!, l1scale_rows! ∘ nonnegative!],
+    constraints=[simplex_rows!, simplex_rows!],
 
     # Ensure the initialization satisfies the constraints
     constrain_init=true,
@@ -52,16 +52,17 @@ options = (
     # If `final_constraints` is not given, fallback to using `constraints`.
     # This will add one extra iteration in the stats
     constrain_output=false,
-    final_constraints = [l1scale_cols! ∘ nonnegative!, l1scale_cols! ∘ nonnegative!],
-    objective = RowWiseObjective(KLDivergence),
-    steps = ArmijoStep,
+    final_constraints = [l1scale_rows! ∘ nonnegative!, l1scale_rows! ∘ nonnegative!],
+    objective = RowWiseObjective(BlockTensorFactorization.Core.CrossEntropy),
+    # objective = RowWiseObjective(KLDivergence),
+    steps = ArmijoStep(; β=0.5, δ=0.5),
 )
 
 # Factorize Y
 
-decomposition, stats_data, kwargs = fact(Y; options...);
+decomposition, stats, kwargs = fact(Y; options...);
 
-display(stats_data)
+display(stats)
 
 B_learned, A_learned = factors(decomposition)
 
