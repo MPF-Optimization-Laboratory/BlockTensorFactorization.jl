@@ -26,7 +26,7 @@ export AbstractTucker, Tucker, Tucker1, CPDecomposition
 
 #include("./objective.jl")
 export AbstractObjective
-export CrossEntropy, KLDivergence, L1, L2, Lp
+export CrossEntropy, KLDivergence, SymKLDivergence,L1, L2, Lp
 export BUILT_IN_STRUCTURED_OBJECTIVES
 export AbstractStructuredObjective, StructuredObjective, SliceWiseObjective
 export ColWiseObjective, RowWiseObjective, Slice1WiseObjective, Slice12WiseObjective

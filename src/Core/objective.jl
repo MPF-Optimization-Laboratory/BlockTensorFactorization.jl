@@ -79,7 +79,24 @@ struct KLDivergence <: AbstractObjective end
 Calculates the KL-divergence objective at tensors `X` and `Y`.
 """
 function (objective::KLDivergence)(X, Y)
-    return sum(@. abs(X) * log(abs(X / Y)))
+    if any(x-> x ≤ 0, X) || any(y-> y ≤ 0, Y) || any(z-> z ≤ 1e-300, X ./ Y)
+        return Inf
+    end
+    return sum(@. X * log(X / Y))
+end
+
+"""
+add
+"""
+
+struct SymKLDivergence <: AbstractObjective end
+
+function (objective::SymKLDivergence)(X, Y)
+    if any(x-> x ≤ 0, X) || any(y-> y ≤ 0, Y) ||
+        any(z-> z ≤ 1e-300, X ./ Y) || any(z-> z ≤ 1e-300, Y ./ X)
+        return Inf
+    end
+    return sum(@. Y * log(Y / X)) + sum(@. X * log(X / Y))
 end
 
 """
@@ -95,6 +112,9 @@ struct CrossEntropy <: AbstractObjective end
 Calculates the cross-entropy objective at tensors `X` and `Y`.
 """
 function (objective::CrossEntropy)(X, Y)
+    if any(x-> x ≤ 0, X) || any(y-> y ≤ 1e-300, Y)
+        return Inf
+    end
     return -sum(@. abs(X) * log(abs(Y)))
 end
 
